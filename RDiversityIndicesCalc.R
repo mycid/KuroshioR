@@ -1,4 +1,3 @@
-setwd("/home/trevor/Desktop/2009 Kuroshio data")
 test <- read.csv("Kuroshio_Phytoplankton.csv") #Microscopy counts
 KC <- read.csv("Kuro_Phytoplankton_coords.csv")
 test[82:84] <- list(NULL)

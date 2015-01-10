@@ -1,6 +1,5 @@
 #Only diatoms and dinoflagellates for this one!
 #Both dinos and diatoms
-setwd("/home/trevor/Desktop/2009 Kuroshio data")
 test2 <- read.csv("Kuroshio_Phytoplankton.csv") #Microscopy counts
 KC <- read.csv("Kuro_Phytoplankton_coords.csv")
 test2[78:84] <- list(NULL)
