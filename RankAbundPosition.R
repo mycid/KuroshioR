@@ -30,7 +30,10 @@ plot(S.A$distance, S.A$S, axes=FALSE, xlab="", ylab="", ylim=c(33.6, 34.3), xlim
 mtext("Salinity",side=4,col="red",line=3) 
 axis(4, ylim=c(33.6,34.3), col="blue" ,col.axis="blue",las=1)
 legend("bottomleft",legend=c("S Gradient/Adjusted Distance","Salinity/Station Distance"), cex=.75,
-       text.col=c("green","blue"),pch=c(23,24),col=c("green","blue"))
+text.col=c("green","blue"),pch=c(23,24),col=c("green","blue"))
+DfromF <- (c(dist1[4,])*.001)-89.70125
+S.A <- S.A[-1]
+S.A <- cbind(DfromF, S.A)
 #B
 Bdist<- cbind(S.B$longitude, S.B$latitude)
 dist2 <- distm(Bdist)
@@ -49,6 +52,10 @@ mtext("Salinity",side=4,col="red",line=3)
 axis(4, ylim=c(33.1,34.2), col="blue" ,col.axis="blue",las=1)
 legend("topleft",legend=c("S Gradient/Adjusted Distance","Salinity/Station Distance"), cex=.75,
 text.col=c("green","blue"),pch=c(23,24),col=c("green","blue"))
+DfromF <- (dist2[5,]*.001)-14.32125
+S.B <- S.B[-1]
+S.B <- cbind(DfromF, S.B)
+
 #C
 Cdist<- cbind(S.C$longitude, S.C$latitude)
 dist3 <- distm(Cdist)
@@ -67,6 +74,9 @@ mtext("Salinity",side=4,col="red",line=3)
 axis(4, ylim=c(33.1,34.5), col="blue" ,col.axis="blue",las=1)
 legend("topleft",legend=c("S Gradient/Adjusted Distance","Salinity/Station Distance"), cex=.6,
 text.col=c("green","blue"),pch=c(23,24),col=c("green","blue"))
+DfromF <- (c(dist3[1,])*.001)-4.74221
+S.C <- S.C[-1]
+S.C <- cbind(DfromF, S.C)
 #
 #D
 Ddist<- cbind(S.D$longitude, S.D$latitude)
@@ -86,6 +96,9 @@ mtext("Salinity",side=4,col="red",line=3)
 axis(4, ylim=c(32.75,34.5), col="blue" ,col.axis="blue",las=1)
 legend("topleft",legend=c("S Gradient/Adjusted Distance","Salinity/Station Distance"), cex=.6,
 text.col=c("green","blue"),pch=c(23,24),col=c("green","blue"))
+DfromF <- (c(dist4[3,])*.001)-13.965
+S.D <- S.D[-1]
+S.D <- cbind(DfromF, S.D)
 #
 
 #E
@@ -106,8 +119,10 @@ mtext("Salinity",side=4,col="red",line=3)
 axis(4, ylim=c(33,35), col="blue" ,col.axis="blue",las=1)
 legend("bottomleft",legend=c("S Gradient/Adjusted Distance","Salinity/Station Distance"), cex=.75,
 text.col=c("green","blue"),pch=c(23, 24), col=c("green","blue"))
+DfromF <- (c(dist5[1,])*.001)-23.193416
+S.E <- S.E[-1]
+S.E <- cbind(DfromF, S.E)
 #
-#AllDist <- rbind(S.A, S.B, S.C, S.D, S.E)
-
-#ggplot(AllDist, aes(x = distFront , y = ShannonWiener)) + geom_point(size=5, alpha=.6, label= AllDist$ShannonWiener)+ggtitle("Richness and Distance from the Front")
-
+AllDist <- rbind(S.A, S.B, S.C, S.D, S.E)
+ggplot(AllDist, aes(x = DfromF , y = Richness)) + geom_point(size=5, alpha=.6, label= AllDist$ShannonWiener)+ggtitle("Richness and Distance from the Front")
+ln(AllDist$DfromF, AllDist$Richness)
