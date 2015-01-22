@@ -1,11 +1,24 @@
 #Abundance vs. Richness
-SpA <- apply(test2[, 3:74], 1, sum) 
-Adiv.abiotic <- cbind(SpA, div.abio)
+SpA <- apply(test2[, 3:74], 1, sum)
+Transect <- read.csv("Untitled3.csv")
+Adiv.abiotic <- cbind(Transect, div.abio)
 Adiv.abiotic2 <- Adiv.abiotic[-c(186:190)]
-ggplot(Adiv.abiotic2, aes(x = SpA , y = Richness)) + geom_point(size=5, alpha=.6, label= Adiv.abiotic2$SpA)+ggtitle("Kuroshio Richness vs. Abundance")                              
+Adiv.abiotic2 <- cbind(Transect,Adiv.abiotic2)
+Adiv.abiotic2$ShannonWiener
+#Scatterplot iterations
+ggplot(Adiv.abiotic2, aes(x = SpA , y = Richness)) + geom_point(size=5, alpha=.6, label= Adiv.abiotic2$SpA)+ggtitle("Kuroshio Richness vs. Abundance")+geom_smooth( level=.975)
+jet.colors <- colorRampPalette(c("#00007F", "blue", "#007FFF", "cyan", "#7FFF7F", "yellow", "#FF7F00", "red", "#7F0000"))
+ggplot(Adiv.abiotic2, aes(x = SpA, y = Richness, colour=S)) + geom_point(size=5, alpha=.6, label= Adiv.abiotic2$ShannonWiener) + scale_color_gradientn(colours=jet.colors(7), na.value="black", space="rgb", guide="colourbar")+ggtitle("Abundance, Richness, and Theta")
+ggplot(Adiv.abiotic2, aes(x = SpA, y = Richness, colour=sigPoDen)) + geom_point(size=5, alpha=.6, label= Adiv.abiotic2$ShannonWiener) + scale_color_gradientn(colours=jet.colors(7), na.value="black", space="rgb", guide="colourbar")+ggtitle("Abundance, Richness, and Theta")
+ggplot(Adiv.abiotic2, aes(x = SpA, y = Richness, colour=ShannonWiener)) + geom_point(size=5, alpha=.6, label= Adiv.abiotic2$ShannonWiener) + scale_color_gradientn(colours=jet.colors(7), na.value="black", space="rgb", guide="colourbar")+ggtitle("Abundance, Richness, and Theta")
+ggplot(Adiv.abiotic2, aes(x = SpA, y = Richness, colour=ShannonE)) + geom_point(size=5, alpha=.6, label= Adiv.abiotic2$ShannonWiener) + scale_color_gradientn(colours=jet.colors(7), na.value="black", space="rgb", guide="colourbar")+ggtitle("Abundance, Richness, and Theta")
+ggplot(Adiv.abiotic2, aes(x = SpA, y = Richness, colour=NO3..uM.)) + geom_point(size=5, alpha=.6, label= Adiv.abiotic2$ShannonWiener) + scale_color_gradientn(colours=jet.colors(7), na.value="black", space="rgb", guide="colourbar")+ggtitle("Abundance, Richness, and Theta")
+ggplot(Adiv.abiotic2, aes(x = Evenness.SW, y = Richness, colour=sigPoDen)) + geom_point(size=5, alpha=.6, label= Adiv.abiotic2$ShannonWiener) + scale_color_gradientn(colours=jet.colors(7), na.value="black", space="rgb", guide="colourbar")+ggtitle("Abundance, Richness, and Theta")
+
+ggplot(Adiv.abiotic2, aes(x = SpA , y = ShannonWiener)) + geom_point(size=5, alpha=.6, label= Adiv.abiotic2$SpA)+ggtitle("Kuroshio Shannon vs. Abundance")
 ggplot(Adiv.abiotic2, aes(x = SpA , y = Evenness.SW)) + geom_point(size=5, alpha=.6, label= Adiv.abiotic2$SpA)+ggtitle("Kuroshio Abundance vs. Evenness")                              
 ggplot(Adiv.abiotic2, aes(x =Richness,y=Evenness.SW)) + geom_point(size=5, alpha=.6, label= Adiv.abiotic2$Richness)+ggtitle("Kuroshio Richness vs. Evenness") 
-#Binned by Salinity
+
 
 Surface <- div.abio2[which(div.abio2[, 3]<1),] 
 S.A <-Surface[1:7,]
@@ -31,7 +44,7 @@ mtext("Salinity",side=4,col="red",line=3)
 axis(4, ylim=c(33.6,34.3), col="blue" ,col.axis="blue",las=1)
 legend("bottomleft",legend=c("S Gradient/Adjusted Distance","Salinity/Station Distance"), cex=.75,
 text.col=c("green","blue"),pch=c(23,24),col=c("green","blue"))
-DfromF <- (c(dist1[4,])*.001)-89.70125
+DfromF <- (c(dist1[1,])*-.001)+89.70125
 S.A <- S.A[-1]
 S.A <- cbind(DfromF, S.A)
 #B
@@ -61,7 +74,7 @@ Cdist<- cbind(S.C$longitude, S.C$latitude)
 dist3 <- distm(Cdist)
 distance3 <- dist3[1,]*.001
 SalGradientC <- with(S.C, (S[-1] - S[-length(S)])/(distance3[-1]-distance3[-length(distance3)]))
-AdjDistC <- distance3[-7]+((distance3[-1] - distance3[-length(distance3)])/2)
+AdjDistC <- distance3[-9]+((distance3[-1] - distance3[-length(distance3)])/2)
 Front4C <- as.data.frame(cbind(SalGradientC,AdjDistC))
 #ggplot(Front4C, aes(x =AdjDistC , y =SalGradientC)) + geom_point(size=5, alpha=.6, label=Front4C$SalGradientC )+ggtitle("Salinity Gradient over Distance T.C")
 S.C <- cbind(distance3, S.C)
@@ -74,7 +87,7 @@ mtext("Salinity",side=4,col="red",line=3)
 axis(4, ylim=c(33.1,34.5), col="blue" ,col.axis="blue",las=1)
 legend("topleft",legend=c("S Gradient/Adjusted Distance","Salinity/Station Distance"), cex=.6,
 text.col=c("green","blue"),pch=c(23,24),col=c("green","blue"))
-DfromF <- (c(dist3[1,])*.001)-4.74221
+DfromF <- (c(dist3[1,])*-.001)-79.3708
 S.C <- S.C[-1]
 S.C <- cbind(DfromF, S.C)
 #
@@ -83,7 +96,7 @@ Ddist<- cbind(S.D$longitude, S.D$latitude)
 dist4 <- distm(Ddist)
 distance4 <- dist4[1,]*.001
 SalGradientD <- with(S.D, (S[-1] - S[-length(S)])/(distance4[-1]-distance4[-length(distance4)]))
-AdjDistD <- distance4[-7]+((distance4[-1] - distance4[-length(distance4)])/2)
+AdjDistD <- distance4[-8]+((distance4[-1] - distance4[-length(distance4)])/2)
 Front4D <- as.data.frame(cbind(SalGradientD,AdjDistD))
 #ggplot(Front4D, aes(x =AdjDistD , y =SalGradientD)) + geom_point(size=5, alpha=.6, label=Front4D$SalGradientD )+ggtitle("Salinity Gradient over Distance T.D")
 S.D <- cbind(distance4, S.D)
@@ -96,7 +109,7 @@ mtext("Salinity",side=4,col="red",line=3)
 axis(4, ylim=c(32.75,34.5), col="blue" ,col.axis="blue",las=1)
 legend("topleft",legend=c("S Gradient/Adjusted Distance","Salinity/Station Distance"), cex=.6,
 text.col=c("green","blue"),pch=c(23,24),col=c("green","blue"))
-DfromF <- (c(dist4[3,])*.001)-13.965
+DfromF <- (c(dist4[3,])*.001)-50.5112
 S.D <- S.D[-1]
 S.D <- cbind(DfromF, S.D)
 #
@@ -112,17 +125,19 @@ Front4E <- as.data.frame(cbind(SalGradientE,AdjDistE))
 S.E <- cbind(distance5, S.E)
 par(mar=c(5.1,4.1,4.1,5.1)) #this must be before both plots are made
 plot(AdjDistE, SalGradientE, type="b", pch=23, col="black",bg="green", cex=1.5, main="Transect E change in S Gradient/Distance", col.main=51, 
-sub="Plot Overlayed by Initial S and Distance", col.sub="blue", xlab="Distance (km)", ylab="Salinity Gradient", xlim=c(0,52), ylim=c(-.12,.12))
+sub="Plot Overlayed by Initial S and Distance", col.sub="blue", xlab="Distance (km)", ylab="Salinity Gradient", xlim=c(0,55), ylim=c(-.12,.12))
 par(new=TRUE)
 plot(S.E$distance5, S.E$S, axes=FALSE, xlab="", ylab="", ylim=c(33.4, 34.5), xlim=c(0,55), type="b",lty=2, pch=24, col="black", bg=125)
 mtext("Salinity",side=4,col="red",line=3) 
 axis(4, ylim=c(33,35), col="blue" ,col.axis="blue",las=1)
 legend("bottomleft",legend=c("S Gradient/Adjusted Distance","Salinity/Station Distance"), cex=.75,
 text.col=c("green","blue"),pch=c(23, 24), col=c("green","blue"))
-DfromF <- (c(dist5[1,])*.001)-23.193416
+DfromF <- (c(dist5[1,])*-.001)-41.7504
 S.E <- S.E[-1]
 S.E <- cbind(DfromF, S.E)
 #
 AllDist <- rbind(S.A, S.B, S.C, S.D, S.E)
-ggplot(AllDist, aes(x = DfromF , y = Richness)) + geom_point(size=5, alpha=.6, label= AllDist$ShannonWiener)+ggtitle("Richness and Distance from the Front")
+Transect <- c("A",  "A",  "A","A","A",  "A",  "A",  "B",  "B", "B", "B", "B", "B", "B", "B", "C", "C", "C", "C", "C", "C", "C", "C", "C", "D", "D", "D", "D", "D", "D", "D", "D", "E", "E", "E", "E", "E", "E", "E")
+AllDist <- cbind(Transect, AllDist)
+ggplot(AllDist, aes(x = DfromF , y = Richness, color=Transect)) + geom_point(size=5, alpha=.6, label= AllDist$ShannonWiener)+ggtitle("Richness and Distance from the Front")
 ln(AllDist$DfromF, AllDist$Richness)
