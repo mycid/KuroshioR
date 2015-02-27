@@ -1,4 +1,6 @@
-KuroshioWaters <- div.abiotic2[which(div.abiotic2$S >=34.2),]
+KuroshioWaters <- div.abiotic2[which(div.abiotic2$S >=34.1),]
+KuroshioWaters <- KuroshioWaters[which(KuroshioWaters$S <=34.45),]
+KuroshioWaters <- KuroshioWaters[which(KuroshioWaters$Theta >=21),]
 OyashioWaters <- div.abiotic2[which(div.abiotic2$S <=33.8),]
 #Kuroshio
 ShEK <- ggplot(KuroshioWaters, aes(x = S , y = Theta, colour=Evenness.SW)) + geom_point(size=5, alpha=.6, label= KuroshioWaters$Evenness.SW) + scale_color_gradientn(colours=jet.colors(7), space ="rgb", na.value = "black", guide = "colourbar")+ggtitle("Kuroshio Evenness SW All")

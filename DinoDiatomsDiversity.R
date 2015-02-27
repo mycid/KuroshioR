@@ -10,7 +10,7 @@ SD <- apply(test2[, 3:74], 1, function(x) (sum(x*(x-1)))/(sum(x)*(sum(x)-1)))
 SimE <- (1/SD)/SpR
 SW <- apply(test2[, 3:74], 1, function(x) (x/sum(x))*(-log(x/sum(x))))
 SWD <- colSums (SW, na.rm=T) #Shannon Wiener Diversity Index 
-ShannonE <- SWD/log(SpR) #Eveness 
+ShannonE <- SWD/log(SpR) #Eveness
 DiversityI <- data.frame(Richness=SpR, ShannonWiener=SWD, Simpson=SD, Evenness.SW=ShannonE, Evenness.Sim=SimE)
 DiversityIndex <- cbind(KC, DiversityI) 
 Al<- read.csv("KuroAlldata.csv")   
@@ -29,7 +29,6 @@ sigPoDen <- PoDen-1000
 div.abio <- cbind(DiversityIndex, Theta, All[, 7:9], sigPoDen, All[, 11:30])
 div.abio$theta=NULL
 View(div.abio)
-div.abio2 <- div.abio[-c(186:190),]
 #Only dinos
 
 test2 <- read.csv("Kuroshio_Phytoplankton.csv") #Microscopy counts
@@ -94,3 +93,5 @@ Diatomdiv.abio <- cbind(DiatomDiversityIndex, Theta, All[, 7:9], sigPoDen, All[,
 Diatomdiv.abio$theta=NULL
 View(Diatomdiv.abio)
 Diatomdiv.abio2 <- Diatomdiv.abio[-c(186:190),]
+DinoPercent <- dinodiv.abio$Richness/div.abio$Richness
+div.abio2 <- cbind(DiatomPercent, div.abio)

@@ -1,7 +1,7 @@
 test <- read.csv("Kuroshio_Phytoplankton.csv") #Microscopy counts
 KC <- read.csv("Kuro_Phytoplankton_coords.csv")
 test[82:84] <- list(NULL)
-SpR <- apply(test[, 3:81], 1, function(x) sum(x>0)) #species richness
+SpR <- apply(test[, 3:81], 1, function(x) sum(x>0)) #species richness all phytoplankton not just diatom and dinoflagellate
 SD <- apply(test[, 3:81], 1, function(x) (sum(x*(x-1)))/(sum(x)*(sum(x)-1)))
 SimE <- (1/SD)/SpR
 SW <- apply(test[, 3:81], 1, function(x) (x/sum(x))*(-log(x/sum(x))))
