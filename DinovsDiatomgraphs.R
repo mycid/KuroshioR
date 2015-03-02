@@ -7,7 +7,7 @@ DinoR <- ggplot(dinodiv.abio2, aes(x = S , y = Theta, colour=Richness)) + geom_p
 BothR <- ggplot(div.abio2, aes(x = S , y = Theta, colour=Richness)) + geom_point(size=5, alpha=.6, label= div.abio2$Richness) + scale_color_gradientn(colours=jet.colors(7), space ="rgb", na.value = "black", guide = "colourbar")+ggtitle("Both Kuroshio Richness")
 DiatomSimE <- ggplot(Diatomdiv.abio2, aes(x = S , y = Theta, colour=Evenness.SW)) + geom_point(size=5, alpha=.6, label= Diatomdiv.abio2$EvennessSW) + scale_color_gradientn(colours=jet.colors(7), space ="rgb", guide = "colourbar")+ggtitle("Kuroshio Diatom Shannon Evenness")
 DinoRSimE <- ggplot(dinodiv.abio2, aes(x = S , y = Theta, colour=Evenness.SW)) + geom_point(size=5, alpha=.6, label= dinodiv.abio2$EvennessSW) + scale_color_gradientn(colours=jet.colors(7), space ="rgb", na.value = "blue", guide = "colourbar")+ggtitle("Kuroshio dinoflagellate Shannon Evenness")
-BothRSimE <- ggplot(div.abio2, aes(x = S , y = Theta, colour=Evenness.SW)) + geom_point(size=5, alpha=.6, label= div.abio2$EvennessSW) + scale_color_gradientn(colours=jet.colors(7), space ="rgb", na.value = "#00007F", guide = "colourbar")+ggtitle("Both Kuroshio Shannon Evenness")
+BothRSimE <- ggplot(div.abio2, aes(x = S , y = Theta, colour=DinoandDiatomP)) + geom_point(size=5, alpha=.6, label= div.abio2$EvennessSW) + scale_color_gradientn(colours=jet.colors(7), space ="rgb", na.value = "#00007F", guide = "colourbar")+ggtitle("Both Kuroshio Shannon Evenness")
 grid.arrange(DiatomR, DinoR, DiatomSimE, S=DinoRSimE, BothR, BothRSimE, ncol=2)
 
 jet.colors <- colorRampPalette(c("#00007F", "blue", "#007FFF", "cyan", "#7FFF7F", "yellow", "#FF7F00", "red", "#7F0000"))
