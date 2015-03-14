@@ -19,7 +19,7 @@ ggplot(Adiv.abiotic2, aes(x = SpA , y = Evenness.SW)) + geom_point(size=5, alpha
 ggplot(Adiv.abiotic2, aes(x =Richness,y=Evenness.SW)) + geom_point(size=5, alpha=.6, label= Adiv.abiotic2$Richness)+ggtitle("Kuroshio Richness vs. Evenness") 
 
 
-Surface<- div.abio2[which(div.abio2[, 3]<1),] 
+Surface<- Adiv.abiotic2[which(Adiv.abiotic2[, 6]<1),] 
 S.A <-Surface[1:7,]
 S.B <- Surface[8:15,]
 S.C<- Surface[16:24,]
@@ -66,7 +66,7 @@ mtext("Salinity",side=4,col="red",line=3)
 axis(4, ylim=c(33.1,34.2), col="blue" ,col.axis="blue",las=1)
 legend("topleft",legend=c("S Gradient/Adjusted Distance","Salinity/Station Distance"), cex=.75,
 text.col=c("green","blue"),pch=c(23,24),col=c("green","blue"))
-DfromF <- (dist2[5,]*.001)-14.32125
+DfromF <- (dist2[5,]*.001)
 S.B <- S.B[-1]
 S.B <- cbind(DfromF, S.B)
 
@@ -133,11 +133,19 @@ mtext("Salinity",side=4,col="red",line=3)
 axis(4, ylim=c(33,35), col="blue" ,col.axis="blue",las=1)
 legend("bottomleft",legend=c("S Gradient/Adjusted Distance","Salinity/Station Distance"), cex=.75,
 text.col=c("green","blue"),pch=c(23, 24), col=c("green","blue"))
-DfromF <- (c(dist5[1,])*-.001)+41.7504
+DfromF <- (c(dist5[1,])*-.001)
 S.E <- S.E[-1]
 S.E <- cbind(DfromF, S.E)
 #
 AllDist <- rbind(S.A, S.B, S.C, S.D, S.E)
+#Richness Gradient
+RichGradientE <- with(S.E, (Richness[-1] - Richness[-length(Richness)])/(distance5[-1]-distance5[-length(distance5)]))
+RichGradientD <- with(S.D, (Richness[-1] - Richness[-length(Richness)])/(distance4[-1]-distance4[-length(distance4)]))
+RichGradientC <- with(S.C, (Richness[-1] - Richness[-length(Richness)])/(distance3[-1]-distance3[-length(distance3)]))
+RichGradientB <- with(S.B, (Richness[-1] - Richness[-length(Richness)])/(distance1[-1]-distance1[-length(distance1)]))
+RichGradientA <- with(S.A, (Richness[-1] - Richness[-length(Richness)])/(distance[-1]-distance[-length(distance)]))
+RichGradient<- c(RichGradientA, RichGradientB, RichGradientC, RichGradientD, RichGradientE)
+SalGradient<- c(SalGradientA, SalGradientB, SalGradientC, SalGradientD, SalGradientE)
 Transect <- c("A",  "A",  "A","A","A",  "A",  "A",  "B",  "B", "B", "B", "B", "B", "B", "B", "C", "C", "C", "C", "C", "C", "C", "C", "C", "D", "D", "D", "D", "D", "D", "D", "D", "E", "E", "E", "E", "E", "E", "E")
 AllDist <- cbind(Transect, AllDist)
 ggplot(AllDist, aes(x = DfromF , y = Richness, color=Transect)) + geom_point(size=5, alpha=.6, label= AllDist$ShannonWiener)+ggtitle("Richness and Distance from the Front")
@@ -154,7 +162,7 @@ B <- Adiv.abiotic2[which(Adiv.abiotic2[, 1]=="B"),]
 Bdist<- cbind(B$longitude, B$latitude)
 bdist2<- distm(Bdist)
 distance1 <- bdist2[1,]*.001
-BDfromF <-distance1-14.32125
+BDfromF <-distance1
 C<- Adiv.abiotic2[which(Adiv.abiotic2[, 1]=="C"),]
 Cdist<- cbind(C$longitude, C$latitude)
 dist3 <- distm(Cdist)
@@ -169,13 +177,13 @@ E<- Adiv.abiotic2[which(Adiv.abiotic2[, 1]=="E"),]
 Edist<- cbind(E$longitude, E$latitude)
 dist5 <- distm(Edist)
 distance4 <- dist5[1,]*-.001
-EDfromF <-distance4+41.7504
+EDfromF <-distance4
 DfromF <- c(ADfromF, BDfromF, CDfromF, DDfromF,EDfromF)
 Adiv.abiotic2<-cbind(DfromF,Adiv.abiotic2)
 #Making graphs for this stuff
 Adiv.abiotic2$A<- as.factor(Adiv.abiotic2$A)
 Ad <- ggplot(Adiv.abiotic2, aes(x = DfromF, y = SpA, colour=Richness)) + geom_point(size=5, alpha=.6, label= Adiv.abiotic2$Richness) + scale_color_gradientn(colours=jet.colors(7), na.value="black", space="rgb", guide="colourbar")+ggtitle("Cell Count Abundance/Distance from the Front")
 Ad+stat_smooth(method = "lm", formula = y ~ poly(x, 2), size = 1)+guides(colour = "colorbar", barwidth = 0.5, nbin = 15, barheight = 10)
-summary(lm(Richness~Evenness.SW+I(Evenness.SW^2), data=Adiv.abiotic2))
+summary(lm(DfromF~, data=IntDiverse))
 #guide_colourbar(title = waiver(), title.position = NULL, title.theme = NULL, title.hjust = NULL, title.vjust = NULL, label = TRUE, label.position = NULL, label.theme = NULL, label.hjust = NULL, label.vjust = NULL, barwidth = NULL, barheight = 3, nbin = 20, raster = TRUE, ticks = TRUE, draw.ulim = TRUE, draw.llim = TRUE, direction = NULL, default.unit = "line", reverse = FALSE, order = 0)
 
