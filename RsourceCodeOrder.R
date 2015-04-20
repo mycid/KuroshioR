@@ -9,4 +9,7 @@ source("DinovsDiatomgraphs.R")
 source("ColorPlot.R")
 source("Kuro_Vs_Oya.R")
 source("ArcticDiversity.R")
+source("RankAbundPosition.R")
+source("loopdepthInteg.R")
+source("Euclidean.R")
 

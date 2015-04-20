@@ -1,9 +1,10 @@
 #Abundance vs. Richness
-SpA <- apply(test2[, 3:74], 1, sum)
+SpA <- apply(test[, 3:73], 1, sum)
+TotA <-bigtest$Allbig
 Transect <-(read.csv("Untitled3.csv"))
 #STstat <- ((div.abio$S+div.abio$Theta)*(div.abio$S*div.abio$Theta)) #stats method suggested by Muareen, stats professor, not sure if correctly applied. 
 Transect <- rbind("A", Transect)
-Adiv.abiotic2 <- cbind(Transect, SpA, div.abio)
+Adiv.abiotic2 <- cbind(Transect, SpA, div.abiotic, TotA)
 #Scatterplot iterations
 ggplot(Adiv.abiotic2, aes(x = SpA , y = Richness, color=A)) + geom_point(size=5, alpha=.6, label= Adiv.abiotic2$SpA)+ggtitle("Kuroshio Richness vs. Abundance")
 ggplot(Adiv.abiotic2, aes(x = SpA, y = Richness, colour=S)) + geom_point(size=5, alpha=.6, label= Adiv.abiotic2$ShannonWiener) + scale_color_gradientn(colours=jet.colors(7), na.value="black", space="rgb", guide="colourbar")+ggtitle("Abundance, Richness, and Theta")
