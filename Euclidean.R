@@ -4,12 +4,14 @@
 Euclid <- cbind(test[c(1,3:length(test))])
 colnames(Euclid) <- c("STATION", as.list(colnames(origin[3:(length(origin)-1)])))
 Euclid[Euclid>0]<- 1 
-Euclid <- cbind(Adiv.abiotic2[c(2,6)], Euclid)
 d <- distance(Euclid[2:length(Euclid)], method = "chord") # distance matrix
 fit <- hclust(as.dist(d), method="ward.D") 
 #mfit <- Mclust(Euclid)
- plot(fit) # display dendogram
-groups <- cutree(fit, k=5) 
+#dend <- plot(fit, hang=-1)
+library(sparcl)
+# colors the leaves of a dendrogram
+clade = cutree(fit, 3)
+ColorDendrogram(fit, y = clade, labels = names(Adiv.abiotic2$), main = "Species only", branchlength = 4) 
 
 # draw dendogram with red borders around the 5 clusters 
 rect.hclust(fit, k=5, border="red")
@@ -42,38 +44,54 @@ vdist <- vegdist(phytoInt, Binary=TRUE)
 summary(rad)
 
 #heat map
-AEuclid<-Euclid[which(Euclid[1 ]=="A"),]
-Col <- colSums(AEuclid[,4:ncol(AEuclid)])>0
-AEuclid<- AEuclid[4:length(AEuclid)]
-Apop <- AEuclid[, which(Col==TRUE)]
+dstat <- Adiv.abiotic2[2]
+Euclid <- cbind(dstat, Euclid)
+AEuclid<-Euclid[which(Euclid[,1]=="A"),]
+AEuclid <- AEuclid[3:length(AEuclid)]
+Col <- colSums(AEuclid[,1:ncol(AEuclid)])>0
+Apop <- AEuclid[,which(Col==TRUE)]
+#Apop <- Apop[2:length(Apop)]
+d <- distance(Apop, method = "chord")
+fit <- hclust(as.dist(d), method="ward.D")
 Apop <- as.matrix(Apop)
-fit <- hclust(as.dist(Apop), method="ward.D") 
 plot(fit) # display dendogram
 par(mar=c(5,10,4.1,2.1))
 image1 <-image(Apop, xaxt= "n", yaxt= "n",lwd=5, useRaster = FALSE,  col = grey(seq(0, 1)))
 image1 <- image1+axis( 2, at=seq(0,1,length.out=ncol( Apop ) ), labels= colnames( Apop ), las= 2 )
-image1 <- image1+axis( 1, at=seq(0,1,length.out=nrow( Apop ) ), labels= rownames( Apop ), las= 2)
+image1 <- image1+axis( 1, at=seq(0,1,length.out=nrow( Apop ) ), labels= (A$depth), las= 2)
+image1 <- image1+axis( 3, at=seq(0,1,length.out=nrow( Apop ) ), labels= (A$STATION), las= 1)
 #B presence absence image
- BEuclid<-Euclid[which(Euclid[ 2]=="B"),]
-Col <- colSums(BEuclid[,8:ncol(BEuclid)])>0
-BEuclid<- BEuclid[8:length(BEuclid)]
-Bpop <- BEuclid[, which(Col==TRUE)]
+BEuclid<-Euclid[which(Euclid[,1]=="B"),]
+BEuclid <- BEuclid[3:length(BEuclid)]
+Col <- colSums(BEuclid[,1:ncol(BEuclid)])>0
+Bpop <- BEuclid[,which(Col==TRUE)]
+#Apop <- Apop[2:length(Apop)]
+d <- distance(Bpop, method = "chord")
+fit <- hclust(as.dist(d), method="ward.D")
 Bpop <- as.matrix(Bpop)
+plot(fit) # display dendogram
 par(mar=c(5,10,4.1,2.1))
-image2 <- image(Bpop, xaxt= "n", yaxt= "n", col = grey(seq(0, 1)))
-image2 <- image2+axis( 2, at=seq(0,1,length.out=ncol( Bpop ) ), labels= colnames( Bpop ), las= 2 )
-image2 <- image2+axis( 1, at=seq(0,1,length.out=nrow( Bpop ) ), labels= rownames( Bpop ), las= 2)
+image1 <-image(Bpop, xaxt= "n", yaxt= "n",lwd=5, useRaster = FALSE,  col = grey(seq(0, 1)))
+image1 <- image1+axis( 2, at=seq(0,1,length.out=ncol( Bpop ) ), labels= colnames( Bpop ), las= 2 )
+image1 <- image1+axis( 1, at=seq(0,1,length.out=nrow( Bpop ) ), labels= (B$depth), las= 2)
+image1 <- image1+axis( 3, at=seq(0,1,length.out=nrow( Bpop ) ), labels= (B$STATION), las= 1)
 #C Transect presence absence image
-CEuclid<-Euclid[which(Euclid[ 2]=="C"),]
-Col <- colSums(CEuclid[, 8:ncol(CEuclid)])>0
-CEuclid<- CEuclid[, 8:length(CEuclid)]
-Cpop <- CEuclid[ , which(Col==TRUE)]
-Cpop <- as.matrix(Cpop)
+CEuclid<-Euclid[which(Euclid[,1]=="C"),]
+CEuclid <- CEuclid[3:length(CEuclid)]
+Col <- colSums(CEuclid[,1:ncol(CEuclid)])>0
+Bpop <- BEuclid[,which(Col==TRUE)]
+d <- distance(Bpop, method = "chord")
+fit <- hclust(as.dist(d), method="ward.D")
+Bpop <- as.matrix(Bpop)
+plot(fit) # display dendogram
 par(mar=c(5,10,4.1,2.1))
-image3<- image(Cpop, xaxt= "n", yaxt= "n", col = grey(seq(0, 1)))
-image3 <- image3+axis( 2, at=seq(0,1,length.out=ncol( Cpop ) ), labels= colnames( Cpop ), las= 2 )
-image3<- image3+axis( 1, at=seq(0,1,length.out=nrow( Cpop ) ), labels= rownames( Cpop ), las= 2)
+image1 <-image(Bpop, xaxt= "n", yaxt= "n",lwd=5, useRaster = FALSE,  col = grey(seq(0, 1)))
+image1 <- image1+axis( 2, at=seq(0,1,length.out=ncol( Bpop ) ), labels= colnames( Bpop ), las= 2 )
+image1 <- image1+axis( 1, at=seq(0,1,length.out=nrow( Bpop ) ), labels= (B$depth), las= 2)
+image1 <- image1+axis( 3, at=seq(0,1,length.out=nrow( Bpop ) ), labels= (B$STATION), las= 1)
+
 # D Transect
+
 DEuclid<-Euclid[which(Euclid[ 2]=="D"),]
 Col <- colSums(DEuclid[,8:ncol(DEuclid)])>0
 DEuclid<- DEuclid[,8:length(DEuclid)]

@@ -41,7 +41,7 @@ ALK <- ALK+theme(axis.title.x = element_text(color="cadet blue", vjust=-0.35, si
 ALK <- ALK+theme(axis.text.x=element_text(size=20, vjust=0.5), axis.text.y=element_text(size=20, vjust=.05))
 ALK+stat_smooth(method = "lm", formula = y ~ poly(x, 2) , size = 1)
 #Euclidean difference plot
-EU <- ggplot(DIp.or, aes(x =longitude, y =latitude, colour=factor(groups), label=STATION))+ geom_point(size=7, alpha=.9, label=groups, position=position_dodge(), stat="identity", )#+scale_color_gradientn(colours=jet.colors(7), limits=c(15,26), space="rgb", guide="colourbar")
+EU <- ggplot(Adiv.abiotic2, aes(x =longitude, y =latitude, colour=factor(clade), label=STATION))+ geom_point(size=7, alpha=.9, label=groups, position=position_dodge(), stat="identity", )#+scale_color_gradientn(colours=jet.colors(7), limits=c(15,26), space="rgb", guide="colourbar")
 EU <- EU+geom_text(aes(label=STATION),hjust=0, vjust=-.5)
 EU <- EU+labs(x="Distance from the Front", y="Richness")
 EU<- EU+ scale_y_reverse( lim=c(150,0))
