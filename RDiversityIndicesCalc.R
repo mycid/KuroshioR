@@ -53,3 +53,8 @@ Aldiv.abiotic <- cbind(DiversityIndex, Theta, All[, 7:9], sigPoDen, test2$Cellco
 Aldiv.abiotic$Theta=NULL
 
 #div.abiotic2 <- div.abiotic[-c(186:190),]
+
+#dissimilarity Index scripts
+d <- betadiver(test[3:73], "w")
+range(d - vegdist(test[3:73], binary=TRUE))
+

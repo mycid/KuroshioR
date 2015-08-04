@@ -2,13 +2,16 @@
 #Both dinos and diatoms
 bigtest <- read.csv("Allbigstuff.csv") #Microscopy counts
 KC <- read.csv("Kuro_Phytoplankton_coords.csv")
-SpR <- apply(bigtest[, c(3:10,12,13)], 1, function(x) sum(x>0)) #species richness
-SD <- apply(bigtest[, c(3:10, 12,13)], 1, function(x) (sum(x*(x-1)))/(sum(x)*(sum(x)-1)))
+SpR <- apply(bigtest[, c(3:10)], 1, function(x) sum(x>0)) #species richness
+SD <- apply(bigtest[, c(3:10)], 1, function(x) (sum(x*(x-1)))/(sum(x)*(sum(x)-1)))
 SimE <- (1/SD)/SpR
-SW <- apply(bigtest[, c(3:10, 12,13)], 1, function(x) (x/sum(x))*(-log(x/sum(x))))
+SW <- apply(bigtest[, c(3:10)], 1, function(x) (x/sum(x))*(-log(x/sum(x))))
 SWD <- colSums (SW, na.rm=T) #Shannon Wiener Diversity Index 
 ShannonE <- SWD/log(SpR) #Eveness
-DiversityI <- data.frame(Richness=SpR, ShannonWiener=SWD, Simpson=SD, Evenness.SW=ShannonE, Evenness.Sim=SimE)
+GroupsBioM <- apply(bigtest[,c(3:10)], 1, function(x) sum(x))
+GroupSpeciesRatio <- round((apply(bigtest[,c(3:10)], 1, function(x) sum(x)))/(SpA), digits=3)
+GroupSpeciesRatio[is.infinite(GroupSpeciesRatio)]<- 1000
+DiversityI <- data.frame(Richness=SpR, GroupsBiomass=GroupsBioM, Groups.over.Species_ratio=GroupSpeciesRatio, ShannonWiener=SWD, Simpson=SD, Evenness.SW=ShannonE, Evenness.Sim=SimE)
 DiversityIndex <- cbind(KC, DiversityI) 
 Al<- read.csv("KuroAlldata.csv")   
 All <-Al[complete.cases(Al$Diatoms..cells.l.),] #selected diatoms..cells.l. because any rows reading NA would not match Kuroshio phytoplankton
@@ -23,8 +26,9 @@ B <- (-5.72466*10^(-3))+1.0227*10^(-4)*T-1.6546*10^(-6)*T^(2)
 C <- 4.8314*10^(-4)
 PoDen <- p0+A*S+B*S^(1.5)+C*S^(2)
 sigPoDen <- PoDen-1000
-Bdiv.abio <- cbind(DiversityIndex, Theta, All[, 7:9], sigPoDen, All[, 11:30])
+Bdiv.abio <- cbind(Adiv.abiotic2[,1:4], DiversityIndex, Theta, All[, 7:9], sigPoDen, All[, 11:30])
 Bdiv.abio$theta=NULL
+do.call(data.frame,lapply(Bdiv.abio, function(x) replace(x, is.infinite(x),1000)))
 View(Bdiv.abio)
 #Only dinos
 

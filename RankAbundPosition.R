@@ -1,5 +1,6 @@
 #Abundance vs. Richness
-SpA <- apply(test[, 3:73], 1, sum)
+SpA <- apply(test[, 3:73], 1, function(x) sum(x))
+bigtest <- read.csv("Allbigstuff.csv")
 TotA <-bigtest$Allbig
 Transect <-(read.csv("Untitled3.csv"))
 #STstat <- ((div.abio$S+div.abio$Theta)*(div.abio$S*div.abio$Theta)) #stats method suggested by Muareen, stats professor, not sure if correctly applied. 
@@ -25,7 +26,7 @@ S.A <-Surface[1:7,]
 S.B <- Surface[8:15,]
 S.C<- Surface[16:24,]
 S.D <-Surface[25:32,]
-S.E <- Surface[33:39,]
+S.E <- Surface[33:40,]
 
 
 #A
@@ -104,12 +105,12 @@ Front4D <- as.data.frame(cbind(SalGradientD,AdjDistD))
 S.D <- cbind(distance4, S.D)
 par(mar=c(5.1,4.1,4.1,5.1)) #this must be before both plots are made
 plot(AdjDistD, SalGradientD, type="b", pch=23, col="black",bg="green", cex=1.5, main="Transect D change in S Gradient/Distance", col.main=51, 
-sub="Plot Overlayed by Initial S and Distance", col.sub="blue", xlab="Distance (km)", ylab="Salinity Gradient", xlim=c(0,70), ylim=c(-.12,.12))
+sub="Plot Overlayed by Initial salinity and distance", col.sub="blue", xlab="Distance (km)", ylab="Salinity Gradient", xlim=c(0,70), ylim=c(-.12,.12))
 par(new=TRUE)
 plot(S.D$distance4, S.D$S, axes=FALSE, xlab="", ylab="", ylim=c(32.75, 34.5), xlim=c(0,70), type="b",lty=2, pch=24, col="black", bg=125)
 mtext("Salinity",side=4,col="red",line=3) 
 axis(4, ylim=c(32.75,34.5), col="blue" ,col.axis="blue",las=1)
-legend("topleft",legend=c("S Gradient/Adjusted Distance","Salinity/Station Distance"), cex=.6,
+legend("topright",legend=c("S Gradient/Adjusted Distance","Salinity/Station Distance"), cex=.9,
 text.col=c("green","blue"),pch=c(23,24),col=c("green","blue"))
 DfromF <- (c(dist4[3,])*.001)-23.065398
 S.D <- S.D[-1]
@@ -122,7 +123,7 @@ dist5 <- distm(Edist)
 distance5 <- dist5[1,]*.001
 SalGradientE <- with(S.E, (S[-1] - S[-length(S)])/(distance5[-1]-distance5[-length(distance5)]))
 AdjDistE <- distance5[-7]+((distance5[-1] - distance5[-length(distance5)])/2)
-Front4E <- as.data.frame(cbind(SalGradientE,AdjDistE))
+Front4E <- as.data.frame(cbind(SalGradientE, AdjDistE))
 #ggplot(Front4E, aes(x =AdjDistE , y =SalGradientE)) + geom_point(size=5, alpha=.6, label=Front4E$SalGradientE )+ggtitle("Salinity Gradient over Distance T.E")
 S.E <- cbind(distance5, S.E)
 par(mar=c(5.1,4.1,4.1,5.1)) #this must be before both plots are made

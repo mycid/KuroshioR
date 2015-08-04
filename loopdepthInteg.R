@@ -2,7 +2,7 @@ depth <- as.numeric(Adiv.abiotic2$depth)
 origin <- read.csv("OriginalPhytoplankton.csv")#csv for all species and groups
 #For all groups and species
 DIphyto.or <- cbind(depth, origin)
-DIphyto.or$STATION <- as.list(DIphyto$STATION)
+DIphyto.or$STATION <- as.list(DIphyto.or$STATION)
 #For just species
 DIphyto <- cbind(depth, test)
 DIphyto$STATION <- as.list(DIphyto$STATION)
