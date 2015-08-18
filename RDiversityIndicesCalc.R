@@ -1,60 +1,73 @@
-test <- read.csv("Kuroshio_Phytoplankton.csv") #Microscopy counts
-KC <- read.csv("Kuro_Phytoplankton_coords.csv")
-SpR <- apply(test[, 3:73], 1, function(x) sum(x>0)) #species richness all phytoplankton not just diatom and dinoflagellate
-SD <- apply(test[, 3:73], 1, function(x) (sum(x*(x-1)))/(sum(x)*(sum(x)-1)))
-SimE <- (1/SD)/SpR
-SW <- apply(test[, 3:73], 1, function(x) (x/sum(x))*(-log(x/sum(x))))
-SWD <- colSums (SW, na.rm=T) #Shannon Wiener Diversity Index 
-ShannonE <- SWD/log(SpR) #Eveness 
-DiversityI <- data.frame(Richness=SpR, ShannonWiener=SWD, Simpson=SD, Evenness.SW=ShannonE, Evenness.Sim=SimE)
-DiversityIndex <- cbind(KC, DiversityI) 
-Al<- read.csv("KuroAlldata.csv")   
-All <-Al[complete.cases(Al$Diatoms..cells.l.),] #selected diatoms..cells.l. because any rows reading NA would not match Kuroshio phytoplankton
-the <- All$depth..m.
-t <- All$T.C.
-Theta <- t-((.1*the)/1000)
-T <- Theta
-S <- All$S
+#Downloading all csv files to the Global Environment
+  folder <- getwd() #sets directory as an object/path to folder that holds multiple .csv files
+  file_list <- list.files(path=folder, pattern="*.csv") # create list of all .csv files in folder
+  # read in each .csv file in file_list and create a data frame with the same name as the .csv file
+  for (i in 1:length(file_list)){
+    assign(file_list[i], 
+         read.csv(paste(folder, '/', file_list[i], sep=''))
+  )}
+
+#Making diversity Indices for any data frame with species and abundance
+  #s=the column starting point in the data frame for the function
+  #e=the end column in the data frame for the function
+  #name=name of the data.frame to work from
+Create.Diversity.I <- function(name, s, e) {
+
+  SpR <- apply(name[, s:e], 1, function(x) sum(x>0)) #species richness all phytoplankton not just diatom and dinoflagellate
+  Abund <-apply(name[, s:e], 1, function(x) sum(x)) #cell count
+  SD <- apply(name[, s:e], 1, function(x) (sum(x*(x-1)))/(sum(x)*(sum(x)-1))) #Simpson Diversity
+  SimE <- (1/SD)/SpR #Simpson Evenness
+  SW <- apply(name[, s:e], 1, function(x) (x/sum(x))*(-log(x/sum(x)))) #Shannon Wiener Diversity precursor
+  SWD <- colSums (SW, na.rm=T) #Shannon Wiener Diversity Index 
+  ShannonE <- SWD/log(SpR) #Shannon Wiener Evenness 
+  return(data.frame(Richness=SpR, ShannonWiener=SWD, Simpson=SD, Evenness.SW=ShannonE, Evenness.Sim=SimE, Cellcount=Abund))
+}
+  
+#Calculating Potential Temperature and Salinity
+PotentialST <- function(d, t, s) { #t=temperature, s=salinity, d=depth
+T <- t-((.1*d)/500) #Potential temperature
 p0<- 999.842594+6.793952*10^(-2)*T-9.095290*10^(-3)*T^(2)+1.001685*10^(-4)*T^(3)-1.120083*10^(-6)*T^(4)+6.536332*10^(-9)*T^(5)
 A <- 8.24493*10^(-1)-4.0899*10^(-3)*T+7.6438*10^(-5)*T^(2)-8.2467*10^(-7)*T^(3)+5.3875*10^(-9)*T^(4)
 B <- (-5.72466*10^(-3))+1.0227*10^(-4)*T-1.6546*10^(-6)*T^(2)
 C <- 4.8314*10^(-4)
-PoDen <- p0+A*S+B*S^(1.5)+C*S^(2)
-sigPoDen <- PoDen-1000
-div.abiotic <- cbind(DiversityIndex, Theta, All[, 7:9], sigPoDen, All[, 11:30])
-div.abiotic$theta=NULL
-View(div.abiotic)
-div.abiotic2 <- div.abiotic[-c(186:190),]
-#all groups 
-test2 <- read.csv("OriginalPhytoplankton.csv") #Microscopy counts
-KC <- read.csv("Kuro_Phytoplankton_coords.csv")
-SpR <- apply(test2[, 3:81], 1, function(x) sum(x>0)) #species richness all phytoplankton not just diatom and dinoflagellate
-SD <- apply(test2[, 3:81], 1, function(x) (sum(x*(x-1)))/(sum(x)*(sum(x)-1)))
-SimE <- (1/SD)/SpR
-SW <- apply(test2[, 3:81], 1, function(x) (x/sum(x))*(-log(x/sum(x))))
-SWD <- colSums (SW, na.rm=T) #Shannon Wiener Diversity Index 
-ShannonE <- SWD/log(SpR) #Eveness 
-DiversityI <- data.frame(Richness=SpR, ShannonWiener=SWD, Simpson=SD, Evenness.SW=ShannonE, Evenness.Sim=SimE)
-DiversityIndex <- cbind(KC, DiversityI) 
-Al<- read.csv("KuroAlldata.csv")   
-All <-Al[complete.cases(Al$Diatoms..cells.l.),] #selected diatoms..cells.l. because any rows reading NA would not match Kuroshio phytoplankton
-the <- All$depth..m.
-t <- All$T.C.
-Theta <- t-((.1*the)/1000)
-T <- Theta
-S <- All$S
-p0<- 999.842594+6.793952*10^(-2)*T-9.095290*10^(-3)*T^(2)+1.001685*10^(-4)*T^(3)-1.120083*10^(-6)*T^(4)+6.536332*10^(-9)*T^(5)
-A <- 8.24493*10^(-1)-4.0899*10^(-3)*T+7.6438*10^(-5)*T^(2)-8.2467*10^(-7)*T^(3)+5.3875*10^(-9)*T^(4)
-B <- (-5.72466*10^(-3))+1.0227*10^(-4)*T-1.6546*10^(-6)*T^(2)
-C <- 4.8314*10^(-4)
-PoDen <- p0+A*S+B*S^(1.5)+C*S^(2)
-sigPoDen <- PoDen-1000
-Aldiv.abiotic <- cbind(DiversityIndex, Theta, All[, 7:9], sigPoDen, test2$Cellcount, All[, 11:30])
-Aldiv.abiotic$Theta=NULL
+PoDen <- p0+A*s+B*s^(1.5)+C*s^(2)
+#Lines above are the standard, complex formula for ataining the Potential desnity
+sigPoDen <- PoDen-1000 #gets sigma
+return(data.frame(DiversityIndex, Theta=T, All[, 7:9], sigPoDen, All[, 11:30])) #Creates the final product data frame
+}
+#Group stations by abiotic factors
 
-#div.abiotic2 <- div.abiotic[-c(186:190),]
+AbioticCluster <- function(data, clade) { #Creates a cluster analysis for grouping samples by quantitative, continuous physical features
+  #data is the data.frame to be used for clustering
+  #clade allows the user to specify the number of clades from the dendragrams to be extracted
+  
+  data <- abs(scale(data)) #Scales the data to a mean of 0, sd=1, absolute value
+  d <- vegdist(data)  # distance matrix
+  par(mar=c(3,4,1,1)+.1) #Creates plot margins
+  par(mfrow=c(1,3)) #Creates space for 3 plots
+  csin <- hclust(d, method="single") #1st method for clustering
+  Gcsin <- cutree(csin, clade) #creates clades
+  plot(csin, hang=-1) 
+  ccom <- hclust(d, method="complete") #2nd method for clustering
+  Gccom <<- cutree(ccom, clade) #Creates three clades
+  plot(ccom, hang=-1)
+  caver <- hclust(d, method="aver") #third method for clustering
+  Gcaver <<- cutree(caver, clade) # Creates clades
+  clades <- cbind(Gcsin, Gccom, Gcaver) #Defines clades
+  assign("clades", clades, envir = globalenv()) #this brings clades into the global environment
+  return(plot(caver, hang=-1)) #returns a plot for caver
+  } 
+  
+  #Uses ggplot to plot x and y with a factor in color
 
-#dissimilarity Index scripts
-d <- betadiver(test[3:73], "w")
-range(d - vegdist(test[3:73], binary=TRUE))
+NPfactorInColor <- function(data, x, y, factor){ #Plots the clade data for abiotic
+  #data is the data frame, x is the x axis, y is the y axis, factor is the factor to be put in color
+  EU <- ggplot(data, aes(x =x, y =y, colour=factor(factor), label=station))+ geom_point(size=7, alpha=.9, label=c, position=position_dodge(), stat="identity", )#+scale_color_gradientn(colours=jet.colors(7), space="rgb", guide="colourbar")
+  EU <- EU+geom_text(aes(label=station),hjust=0, vjust-.5)
+  EU <- EU+labs(x="x", y="y")
+  EU <- EU+theme(axis.title.x = element_text(color="cadet blue", vjust=-0.35, size=20, face="bold"), axis.title.y = element_text(color="cadetblue" , vjust=0.35, size=20, face="bold"))
+  CF <- EU+theme(axis.text.x=element_text(size=20, vjust=0.5), axis.text.y=element_text(size=20, vjust=.05))
+  return(CF)
+  }
 
+      

@@ -23,21 +23,21 @@ for(i in 1:length(SL)){
     phytoInt[i,] <- as.matrix(phytoInt[i,] + (-dz*phyto))
 }
 }
-DIp <- (Adiv.abiotic2[which(Adiv.abiotic2[,5]=="S"),])
+DIp <- (Adiv.abiotic2[which(Adiv.abiotic2[,7]==0),])
 DIp <- rbind(DIp[1:6,], Adiv.abiotic2[31,], DIp[7:40,])
 rownames(DIp)<- NULL
-DIp <- DIp[,-c(5,6,9:38)]
+DIp <- DIp[,-c(6,7,10:39)]
 DIp <- cbind(DIp, phytoInt)
-sigPoDen <- c(Surface[1:6,18], Adiv.abiotic2[31, 18], Surface[7:40, 18])
-S <- c(Surface[1:6,16], Adiv.abiotic2[31, 16], Surface[7:40, 16])
-Theta <- c(Surface[1:6,14], Adiv.abiotic2[31, 14], Surface[7:40, 14])
-SpR <- apply(DIp[7:77], 1, function(x) sum(x>0)) #species richness all phytoplankton not just diatom and dinoflagellate
-SpA <- apply(DIp[7:77], 1, function(x) sum(x))
-SD <- apply(DIp[7:77], 1, function(x) (sum(x*(x-1)))/(sum(x)*(sum(x)-1)))
+sigPoDen <- c(Surface[1:6,19], Adiv.abiotic2[31, 19], Surface[7:40, 19])
+S <- c(Surface[1:6,17], Adiv.abiotic2[31, 17], Surface[7:40, 17])
+Theta <- c(Surface[1:6,15], Adiv.abiotic2[31, 15], Surface[7:40, 15])
+SpR <- apply(DIp[8:78], 1, function(x) sum(x>0)) #species richness all phytoplankton not just diatom and dinoflagellate
+SpA <- apply(DIp[8:78], 1, function(x) sum(x))
+SD <- apply(DIp[8:78], 1, function(x) (sum(x*(x-1)))/(sum(x)*(sum(x)-1)))
 SimE <- (1/SD)/SpR
-SW <- apply(DIp[7:77], 1, function(x) (x/sum(x))*(-log(x/sum(x))))
+SW <- apply(DIp[8:78], 1, function(x) (x/sum(x))*(-log(x/sum(x))))
 SWD <- colSums (SW, na.rm=T) #Shannon Wiener Diversity Index 
-ShannonE <- SWD/log(SpR) #Eveness 
+ShannonE <- SWD/log(SpR) #Eveness
 DiversityI <- data.frame(Richness=SpR, Cellcount=SpA, ShannonWiener=SWD, Simpson=SD, Evenness.SW=ShannonE, Evenness.Sim=SimE)
 IntDiverse <- cbind(DIp[1:6], DiversityI, S, Theta, sigPoDen)
 colnames(phytoInt) <- c(as.list(colnames(test[3:73])))

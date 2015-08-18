@@ -1,16 +1,17 @@
 #Making a Euclidean distance plot for IntDiverse
 #mydata <- na.omit(phytoInt)
 #mydata <- scale(phytoInt)
-Euclid <- cbind(test[c(1,3:length(test))])
+Euclid <- test[c(1,3:length(test))]
+Euclid <-Adiv.abiotic2[1:190,c(15,17, 19)]
 #colnames(Euclid) <- c("STATION", as.list(colnames(origin[3:(length(origin)-1)])))
 Euclid[Euclid>0]<- 1 
-d <- distance(Euclid[2:length(Euclid)], method = "chord") # distance matrix
-fit <- hclust(as.dist(d), method="ward.D") 
+d <- dist(Euclid) # distance matrix
+fit <- hclust(d)
 #mfit <- Mclust(Euclid)
 #dend <- plot(fit, hang=-1)
 library(sparcl)
 # colors the leaves of a dendrogram
-clade = cutree(fit, 3)
+clade = cutree(fit, 5)
 ColorDendrogram(fit, y = clade, labels = names(clade), main = "Species only", branchlength = 4) 
 x <- identify(fit)
 identify(fit, function(k) print(table(Euclid[k,2:72])))
@@ -21,7 +22,7 @@ groupCodes <- as.character(Adiv.abiotic2$A)
 rownames(Euclid) <- make.unique(groupCodes)
 colorCodes <- c(A="red", B="green", C="blue", D="yellow", E="purple")
 distSamples <-distance(Euclid[2:length(Euclid)], method = "chord") # distance matrix
-fit <- hclust(as.dist(d), method="ward.D")
+fit <- hclust(as.dist(d))
 dend <- as.dendrogram(fit)
 library(dendextend)
 # Assigning the labels of dendrogram object with new colors:

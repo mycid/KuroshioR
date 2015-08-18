@@ -1,11 +1,4 @@
 #Abundance vs. Richness
-SpA <- apply(test[, 3:73], 1, function(x) sum(x))
-bigtest <- read.csv("Allbigstuff.csv")
-TotA <-bigtest$Allbig
-Transect <-(read.csv("Untitled3.csv"))
-#STstat <- ((div.abio$S+div.abio$Theta)*(div.abio$S*div.abio$Theta)) #stats method suggested by Muareen, stats professor, not sure if correctly applied. 
-Transect <- rbind("A", Transect)
-Adiv.abiotic2 <- cbind(Transect, SpA, div.abiotic, TotA)
 #Scatterplot iterations
 ggplot(Adiv.abiotic2, aes(x = SpA , y = Richness, color=A)) + geom_point(size=5, alpha=.6, label= Adiv.abiotic2$SpA)+ggtitle("Kuroshio Richness vs. Abundance")
 ggplot(Adiv.abiotic2, aes(x = SpA, y = Richness, colour=S)) + geom_point(size=5, alpha=.6, label= Adiv.abiotic2$ShannonWiener) + scale_color_gradientn(colours=jet.colors(7), na.value="black", space="rgb", guide="colourbar")+ggtitle("Abundance, Richness, and Theta")
@@ -20,8 +13,26 @@ ggplot(Adiv.abiotic2, aes(x = Richness , y = Evenness.SW)) + geom_point(size=5, 
 ggplot(Adiv.abiotic2, aes(x = SpA , y = Evenness.SW)) + geom_point(size=5, alpha=.6, label= Adiv.abiotic2$SpA)+ggtitle("Kuroshio Abundance vs. Evenness")                              
 ggplot(Adiv.abiotic2, aes(x =Richness,y=Evenness.SW)) + geom_point(size=5, alpha=.6, label= Adiv.abiotic2$Richness)+ggtitle("Kuroshio Richness vs. Evenness") 
 
+min <- c(0, 1, 26, 51, 76, 101)
+max <- c(2, 25, 50, 75, 100, 150)
+grouprange <- data.frame(min, max)
+DivideByQuality <- function(data, column, groups, logical){ #function to divide a dataset into groups by any single column
+  #data is the dataset or matrix to be used
+  #column is the column by which to sort
+  #group amount is the number of groups desired
+  #unifrom is the option to have a uniform interval or to specify a custom interval
+  #note: function will use the entire range of the column chosen and that column must be quantitative
+      A <- data[which(data[, column] <= groups[],]
+      
+      
+      
+      lapply2 <- function(groups, f) {
+        output <- vector("data.frame")
+      }
+  } else {
+ 
 
-Surface<- Adiv.abiotic2[which(Adiv.abiotic2[, 6]<1),] 
+
 S.A <-Surface[1:7,]
 S.B <- Surface[8:15,]
 S.C<- Surface[16:24,]
