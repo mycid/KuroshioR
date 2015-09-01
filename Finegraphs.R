@@ -33,7 +33,7 @@ DF+stat_smooth(method = "lm", formula = y ~ poly(x, 2), size = 1)
 #Kuroshio All Zoomed in
 #b <- Adiv.abiotic2[which(test2$Prorocentrum.sp.>0),]
 #phyto <-as.numeric(test2[test2$Prorocentrum.sp.>0, which(colnames(test2)=="Prorocentrum.sp.")])
-AZ <- ggplot(Adiv.abiotic2, aes(x =S, y =Theta, colour=Richness))+ geom_point(size=9, alpha=.6, label="Cell Count", position=position_dodge(), stat="identity", )+ scale_color_gradientn(colours=jet.colors(100), na.value="transparent", space="rgb", name="Richness",guide="colourbar")
+AZ <- ggplot(Adiv.abiotic, aes(x =S, y =Theta, colour=Chlorophyll))+ geom_point(size=9, alpha=.6, label="Cell Count", position=position_dodge(), stat="identity", )+ scale_color_gradientn(colours=jet.colors(100), na.value="transparent", space="rgb", name="Richness",guide="colourbar")
 #AZ<- AZ+labs(x="latitude", y="depth")+ggtitle("")
 AZ<- AZ++geom_text(aes(label=STATION))
 AZ <- AZ+theme(panel.background = element_rect(fill = 'white'), plot.background = element_rect(fill = 'black'), 
@@ -46,7 +46,7 @@ par(mfrow=c(1,2))
  AZ+stat_smooth(data=Upperdepth$S, method="loess", )
 #geom_segment(aes(x = 2, y = 15, xend = 3, yend = 15)
 #Kuroshio All
-ALK <- ggplot(Adiv.abiotic2, aes(x =DfromF, y = RIchness, colour=x))+ geom_point(size=6, alpha=.6, label=Aldiv.abiotic$Theta, position=position_dodge(), stat="identity", )+ scale_color_gradientn(colours=jet.colors(7), space="rgb", guide="colourbar")
+ALK <- ggplot(Adiv.abiotic, aes(x =S, y = Theta, colour=Cl))+ geom_point(size=6, alpha=.6, label=Aldiv.abiotic$Theta, position=position_dodge(), stat="identity", )+ scale_color_gradientn(colours=jet.colors(7), space="rgb", guide="colourbar")
 ALK <- ALK+labs(x="Richess", y="Evenness")
 ALK <- ALK+theme(legend.title = "Shannon Wiener", element_text(colour="chocolate", size=21, face="bold"))
 ALK <- ALK+theme(axis.title.x = element_text(color="cadet blue", vjust=-0.35, size=20, face="bold"), axis.title.y = element_text(color="cadetblue" , vjust=0.35, size=20, face="bold"))

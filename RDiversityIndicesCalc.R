@@ -41,33 +41,39 @@ AbioticCluster <- function(data, clade) { #Creates a cluster analysis for groupi
   #data is the data.frame to be used for clustering
   #clade allows the user to specify the number of clades from the dendragrams to be extracted
   
-  data <- abs(scale(data)) #Scales the data to a mean of 0, sd=1, absolute value
-  d <- vegdist(data)  # distance matrix
+  data <- scale(data) #Scales the data to a mean of 0, sd=1, absolute value
+  d <- dist(data, method="euclidean")  # distance matrix
   par(mar=c(3,4,1,1)+.1) #Creates plot margins
   par(mfrow=c(1,3)) #Creates space for 3 plots
   csin <- hclust(d, method="single") #1st method for clustering
   Gcsin <- cutree(csin, clade) #creates clades
-  plot(csin, hang=-1) 
+  ColorDendrogram(csin, y = Gcsin, labels = names(Gcsin), main = "Single Method", branchlength = 2) 
   ccom <- hclust(d, method="complete") #2nd method for clustering
   Gccom <<- cutree(ccom, clade) #Creates three clades
-  plot(ccom, hang=-1)
+  ColorDendrogram(ccom, y = Gccom, labels = names(Gccom), main = "Complete Method", branchlength = 2)
   caver <- hclust(d, method="aver") #third method for clustering
   Gcaver <<- cutree(caver, clade) # Creates clades
   clades <- cbind(Gcsin, Gccom, Gcaver) #Defines clades
   assign("clades", clades, envir = globalenv()) #this brings clades into the global environment
-  return(plot(caver, hang=-1)) #returns a plot for caver
+  return(ColorDendrogram(caver, y = Gcaver, labels = names(Gcaver), main = "Aver Method", branchlength = 2)) #returns a plot for caver
   } 
   
   #Uses ggplot to plot x and y with a factor in color
 
-NPfactorInColor <- function(data, x, y, factor){ #Plots the clade data for abiotic
+NPfactorInColor <- function(data, xvar, yvar, factor, xlab="", ylab=""){ #Plots the clade data for abiotic
   #data is the data frame, x is the x axis, y is the y axis, factor is the factor to be put in color
-  EU <- ggplot(data, aes(x =x, y =y, colour=factor(factor), label=station))+ geom_point(size=7, alpha=.9, label=c, position=position_dodge(), stat="identity", )#+scale_color_gradientn(colours=jet.colors(7), space="rgb", guide="colourbar")
-  EU <- EU+geom_text(aes(label=station),hjust=0, vjust-.5)
-  EU <- EU+labs(x="x", y="y")
+  EU <- ggplot(data, aes_string(x=xvar,y=yvar, colour=factor))+geom_point(size=7, alpha=.9, label=factor, position=position_dodge(), stat="identity")
+  EU <- EU+labs(x=xlab, y=ylab)
   EU <- EU+theme(axis.title.x = element_text(color="cadet blue", vjust=-0.35, size=20, face="bold"), axis.title.y = element_text(color="cadetblue" , vjust=0.35, size=20, face="bold"))
   CF <- EU+theme(axis.text.x=element_text(size=20, vjust=0.5), axis.text.y=element_text(size=20, vjust=.05))
   return(CF)
   }
-
+  #Temporary
+  EU <- ggplot(Adiv.abiotic, aes(x =S, y =Theta, colour=factor(Gccom), label=station))+ geom_point(size=7, alpha=.9, label=c, position=position_dodge(), stat="identity", )#+scale_color_gradientn(colours=jet.colors(7), space="rgb", guide="colourbar")
+  EU <- EU+geom_text(aes(label=station),hjust=0, vjust=-.5)
+  EU <- EU+labs(x="x", y="y")
+  EU <- EU+theme(axis.title.x = element_text(color="cadet blue", vjust=-0.35, size=20, face="bold"), axis.title.y = element_text(color="cadetblue" , vjust=0.35, size=20, face="bold"))
+  CF <- EU+theme(axis.text.x=element_text(size=20, vjust=0.5), axis.text.y=element_text(size=20, vjust=.05))
+  CF #Temporary
+  
       
