@@ -5,7 +5,8 @@
   for (i in 1:length(file_list)){
     assign(file_list[i], 
          read.csv(paste(folder, '/', file_list[i], sep=''))
-  )}
+  )
+  }
 
 #Making diversity Indices for any data frame with species and abundance
   #s=the column starting point in the data frame for the function
@@ -33,9 +34,9 @@ C <- 4.8314*10^(-4)
 PoDen <- p0+A*s+B*s^(1.5)+C*s^(2)
 #Lines above are the standard, complex formula for ataining the Potential desnity
 sigPoDen <- PoDen-1000 #gets sigma
-return(data.frame(DiversityIndex, Theta=T, All[, 7:9], sigPoDen, All[, 11:30])) #Creates the final product data frame
+return(data.frame(DiversityIndex, All[,1:6], Theta=T, S=All[, 8], sigPoDen, All[, 10:31])) #Creates the final product data frame
 }
-#Group stations by abiotic factors
+#Group stations by abiotic factor
 
 AbioticCluster <- function(data, clade) { #Creates a cluster analysis for grouping samples by quantitative, continuous physical features
   #data is the data.frame to be used for clustering
@@ -71,9 +72,32 @@ NPfactorInColor <- function(data, xvar, yvar, factor, xlab="", ylab=""){ #Plots 
   #Temporary
   EU <- ggplot(Adiv.abiotic, aes(x =S, y =Theta, colour=factor(Gccom), label=station))+ geom_point(size=7, alpha=.9, label=c, position=position_dodge(), stat="identity", )#+scale_color_gradientn(colours=jet.colors(7), space="rgb", guide="colourbar")
   EU <- EU+geom_text(aes(label=station),hjust=0, vjust=-.5)
-  EU <- EU+labs(x="x", y="y")
+  EU <- EU+labs(x="Salinity", y="Theta")
   EU <- EU+theme(axis.title.x = element_text(color="cadet blue", vjust=-0.35, size=20, face="bold"), axis.title.y = element_text(color="cadetblue" , vjust=0.35, size=20, face="bold"))
   CF <- EU+theme(axis.text.x=element_text(size=20, vjust=0.5), axis.text.y=element_text(size=20, vjust=.05))
   CF #Temporary
+
+  #Function for splitting data by numbered factors
+  SplitData <- function(data, column, header) { #data=dataframe, column=the the number of the column desired to be used as a numerical factor, header is the title of the data frames without the numbers at the end. MUST BE IN PARATHESES
+  libr <- setNames(split(data, data[, column]), paste0(header, unique(data[,column]))) #Seperates the dataframe into multiple dataframes based on the factor
+  list2env(libr, globalenv()) #Exports both s and each individual, new data frame to the global environment 
+  }
   
-      
+ 
+  #Experimenting with functions for column division
+
+x=Adiv.abiotic
+orderlySpliting <- function(x, column, n, header) { 
+#Function evenly (as possible)  
+#divides data into a set number of groups
+#Orders data into a numerical sequence
+#Use just the column name for 'column', no quotes
+#Returns new dataframes to Global 
+#header choses a header name for the new dataframes
+  arguments <- as.list(match.call()) # function piece comes from http://www.r-bloggers.com/passing-columns-of-a-dataframe-to-a-function-without-quotes/
+  column = eval(arguments$column, x) 
+  print(column)
+  x <- x[,order(column),]
+  Depths <- setNames(split(x,rep(1:n, ceiling(length(x)/n),length.out = length(x))), paste0(header, unique(data[,column])))
+  list2env(Depths, globalenv())
+}
