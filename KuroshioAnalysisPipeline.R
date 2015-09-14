@@ -21,7 +21,8 @@ library("sparcl", lib.loc="/home/trevor/R/i686-pc-linux-gnu-library/3.2")
 library("vegan", lib.loc="/home/trevor/R/i686-pc-linux-gnu-library/3.2")
 library("iNEXT", lib.loc="/home/trevor/R/i686-pc-linux-gnu-library/3.2")
 library("rareNMtests", lib.loc="/home/trevor/R/i686-pc-linux-gnu-library/3.2")
-
+library("RColorBrewer", lib.loc="/home/trevor/R/i686-pc-linux-gnu-library/3.2")
+library("grid", lib.loc="/home/trevor/R/i686-pc-linux-gnu-library/3.2")
 #Preparing the main dataset
 test <- Kuroshio_Phytoplankton.csv #shortens name
 DiversityIndex <- Create.Diversity.I(test, 3,73) #Makes a new dataframe with diversity indexes 
@@ -70,13 +71,14 @@ AbioticCluster(Abiotic, 3) #Creates three different method dendrograms and three
 
 Adiv.abiotic <- cbind(clades, Adiv.abiotic ) #adds the abiotic clades in a number vector to the main data set
 #Time to graph:
-NPfactorInColor(Adiv.abiotic, S, Theta, Gccom, xlab="Salinity", ylab="Theta") #Doesnt work just yet
+NPfactorInColor(Adiv.abiotic, xvar="S", yvar= "Theta", Gccom, xlab="Salinity", ylab="Theta") #Doesnt work just yet
 #Problem here is that it needs a FUN function somewhere for reasons I don't quite understand
 #First some color
 colors <- colorRampPalette(c("black", "#00007F", "#007FFF", "cyan", "#7FFF7F", "yellow", "#FF7F00", "red", "purple", "#7F0000"))
 jet.colors <- colorRampPalette(c("#00007F", "#007FFF", "cyan", "#7FFF7F", "yellow", "#FF7F00", "#7F0000"))
 #Next divide up the data into five distinct depth groups of about equal size. 
-orderlySpliting(Adiv.abiotic, "depth..m.", 5, Depth)
+orderlySpliting(Adiv.abiotic, "depth..m.", 5, "Depth")
+#Manual code for subseting data by depth
 
 Surface <- subset(Adiv.abiotic, depth..m. == 0)
 Shallow <- subset(Adiv.abiotic, depth..m. > 1 & depth..m. <= 25, select=c(Gccom:Si.))
@@ -84,17 +86,14 @@ Medium <- subset(Adiv.abiotic, depth..m. > 25 & depth..m. <= 40, select=c(Gccom:
 MeDeep <- subset(Adiv.abiotic, depth..m. > 40 & depth..m. <= 75 , select=c(Gccom:Si.))
 Deep <- subset(Adiv.abiotic, depth..m. > 75)
 
-
-#Temporary plotting script for plotting groups to color. 
-EU <- ggplot(Adiv.abiotic, aes(x =S, y =Theta, colour=factor(Gccom), label=station))+ geom_point(size=7, alpha=.9, label=c, position=position_dodge(), stat="identity", )#+scale_color_gradientn(colours=jet.colors(7), space="rgb", guide="colourbar")
-EU <- EU+geom_text(aes(label=station),hjust=0, vjust=-.5)
-EU <- EU+labs(x="Salinity", y="Theta")
-EU <- EU+theme(axis.title.x = element_text(color="cadet blue", vjust=-0.35, size=20, face="bold"), axis.title.y = element_text(color="cadetblue" , vjust=0.35, size=20, face="bold"))
-CF <- EU+theme(axis.text.x=element_text(size=20, vjust=0.5), axis.text.y=element_text(size=20, vjust=.05))
-CF
+#Ploting depth layers 
+NPfactorInColor(Surface, xvar="lon", yvar= "lat", Surface$Gccom, xlab="Latitude", ylab="Depth", title="Surface")
+NPfactorInColor(Shallow, xvar="lon", yvar= "lat", Shallow$Gccom, xlab="Latitude", ylab="Depth",title="1:25m")
+NPfactorInColor(Medium, xvar="lon", yvar= "lat", Medium$Gccom, xlab="Latitude", ylab="Depth",title="26:40m")
+NPfactorInColor(MeDeep, xvar="lon", yvar= "lat", MeDeep$Gccom, xlab="Latitude", ylab="Depth",title="41:75m")
+NPfactorInColor(Deep, xvar="lon", yvar= "lat", Deep$Gccom, xlab="Latitude", ylab="Depth", title=">75m") 
+NPfactorInColor(Adiv.abiotic, xvar="lat", yvar= "depth..m.", Adiv.abiotic$Gccom, xlab="Latitude", ylab="Depth", title="All") 
 #Preparing a data set for rarefaction
-
-
 #----------------------------------------------------------------------------------
 #Rarefaction scripts 
 Kuroshio_Phytoplankton <- Kuroshio_Phytoplankton.csv[-c(186:190), -c(1,2)]
@@ -119,5 +118,21 @@ Rarefaction <- list("1"=clus1, "2"=clus2, "3"=clus3)# "5"=clus5)
 
 z <- iNEXT(Rarefaction, q=0, datatype="incidence", se=TRUE) #z is object class iNEXT. It provides all the data shown in the rarefaction graphs
 ggiNEXT(z, type = 1, se = TRUE, facet.var = "order", color.var = "order") #Creates rarefaction graphs
+#--------------------------------------------------------------------------
+#
+clus1 <- as.numeric(apply(dfcluster1[,4:ncol(dfcluster1)], 2, function(x) sum(x>0)))
+clus2 <- as.numeric(apply(dfcluster2[,4:ncol(dfcluster2)], 2, function(x) sum(x>0)))
+clus3 <- as.numeric(apply(dfcluster3[,4:ncol(dfcluster3)], 2, function(x) sum(x>0)))
+Incidence <- t(cbind(clus1, clus2, clus3))
+Kuroshio_Phytoplankton <- Kuroshio_Phytoplankton.csv[-c(186:190), -c(1,2)]
+colnames(Incidence)<-colnames(Kuroshio_Phytoplankton)
+Incidence <- as.matrix(Incidence)
+image((Incidence[nrow(Incidence):1,] ), axes=FALSE, zlim=c(0,25), useRaster = TRUE, col = rainbow(21))
+  col = grey(seq(0, 1)))
+image1 <- image1+axis( 2, at=seq(0,1,length.out=ncol(Incidence ) ), labels= colnames( Incidence), las= 2 )
+image1 <- image1+axis( 1, at=seq(0,1,length.out=nrow(Incidence ) ), labels= ("go"), las= 2)
+image1 <- image1+axis( 3, at=seq(0,1,length.out=nrow( Incidence ) ), labels= ("be"), las= 1)
 
-
+rc <- rainbow(nrow(Incidence), start = 0, end = .3)
+cc <- rainbow(ncol(x), start = 0, end = .3)
+IncidenceMatrix <- heatmap(t(Incidence), Rowv=NA, Colv=NA, scale="row",margins=c(10,5))

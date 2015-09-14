@@ -61,18 +61,27 @@ AbioticCluster <- function(data, clade) { #Creates a cluster analysis for groupi
   
   #Uses ggplot to plot x and y with a factor in color
 
-NPfactorInColor <- function(data, xvar, yvar, factor, xlab="", ylab=""){ #Plots the clade data for abiotic
+NPfactorInColor <- function(data, xvar="", yvar="", factors="", xlab="", ylab="", title=""){ #Plots the clade data for abiotic
   #data is the data frame, x is the x axis, y is the y axis, factor is the factor to be put in color
-  EU <- ggplot(data, aes_string(x=xvar,y=yvar, colour=factor))+geom_point(size=7, alpha=.9, label=factor, position=position_dodge(), stat="identity")
-  EU <- EU+labs(x=xlab, y=ylab)
+  myColors <- brewer.pal(3,"Set1")
+  names(myColors) <- levels(factor)
+  colScale <- scale_colour_manual(name = "Cluster",values = myColors)
+  EU <- ggplot(data, aes_string(x=xvar,y=yvar, colour=aes(factor(factors))),  environment = environment())+geom_point(size=7, alpha=.9, label="Cluster", position=position_dodge(), stat="identity")
+  EU <- EU+labs(x=xlab, y=ylab, colour="Cluster")+ggtitle(title)+theme_bw(base_size = 12, base_family = "Helvetica")
+  #theme(panel.background = element_rect(fill = 'white'), plot.background = element_rect(fill = 'blue'),
+  #legend.title = element_text( colour="black", size=33, face="bold"), legend.key.height=unit(1, "cm"), legend.key.width=unit(1, "cm"), 
+  #legend.background = element_rect(colour = 'white', fill = 'white'), plot.margin = unit(c(1,.5,.5,.5), "cm"), legend.text=element_text(color="black", vjust=.5, size=21) )
   EU <- EU+theme(axis.title.x = element_text(color="cadet blue", vjust=-0.35, size=20, face="bold"), axis.title.y = element_text(color="cadetblue" , vjust=0.35, size=20, face="bold"))
   CF <- EU+theme(axis.text.x=element_text(size=20, vjust=0.5), axis.text.y=element_text(size=20, vjust=.05))
   return(CF)
   }
+  
+  
   #Temporary
-  EU <- ggplot(Adiv.abiotic, aes(x =S, y =Theta, colour=factor(Gccom), label=station))+ geom_point(size=7, alpha=.9, label=c, position=position_dodge(), stat="identity", )#+scale_color_gradientn(colours=jet.colors(7), space="rgb", guide="colourbar")
+  
+  EU <- ggplot(Adiv.abiotic, aes(x =lat, y =depth..m., colour=factor(Gccom), label=station))+ geom_point(size=7, alpha=.9, label=c, position=position_dodge(), stat="identity", )#+scale_color_gradientn(colours=jet.colors(7), space="rgb", guide="colourbar")
   EU <- EU+geom_text(aes(label=station),hjust=0, vjust=-.5)
-  EU <- EU+labs(x="Salinity", y="Theta")
+  EU <- EU+labs(x="Salinity", y="Theta")+stat_contour(z=Adiv.abiotic$sigPoDen, binwidth = 2)
   EU <- EU+theme(axis.title.x = element_text(color="cadet blue", vjust=-0.35, size=20, face="bold"), axis.title.y = element_text(color="cadetblue" , vjust=0.35, size=20, face="bold"))
   CF <- EU+theme(axis.text.x=element_text(size=20, vjust=0.5), axis.text.y=element_text(size=20, vjust=.05))
   CF #Temporary
@@ -94,10 +103,15 @@ orderlySpliting <- function(x, column, n, header) {
 #Use just the column name for 'column', no quotes
 #Returns new dataframes to Global 
 #header choses a header name for the new dataframes
-  arguments <- as.list(match.call()) # function piece comes from http://www.r-bloggers.com/passing-columns-of-a-dataframe-to-a-function-without-quotes/
-  column = eval(arguments$column, x) 
-  print(column)
-  x <- x[,order(column),]
-  Depths <- setNames(split(x,rep(1:n, ceiling(length(x)/n),length.out = length(x))), paste0(header, unique(data[,column])))
+  x <- x[order(x[,column]),]
+  Depths <- split(x,rep(1:n, ceiling(length(x)/n),length.out = length(x)))
+  Depths <- setNames(Depths, paste0(header, unique(rep(1:n))))
   list2env(Depths, globalenv())
 }
+
+  
+  image1 <-image(, xaxt= "n", yaxt= "n",lwd=5, useRaster = FALSE,  col = grey(seq(0, 1)))
+  image1 <- image1+axis( 2, at=seq(0,1,length.out=ncol( Apop ) ), labels= colnames( Apop ), las= 2 )
+  image1 <- image1+axis( 1, at=seq(0,1,length.out=nrow( Apop ) ), labels= (A$depth), las= 2)
+  image1 <- image1+axis( 3, at=seq(0,1,length.out=nrow( Apop ) ), labels= (A$STATION), las= 1)
+  

@@ -69,8 +69,7 @@ dstat <- Adiv.abiotic2[3]
 Euclid <- cbind(dstat, Euclid)
 AEuclid<-Euclid[which(Euclid[,1]=="A"),]
 AEuclid <- AEuclid[3:length(AEuclid)]
-Col <- colSums(AEuclid[,1:ncol(AEuclid)])>0
-Apop <- AEuclid[,which(Col==TRUE)]
+ 
 #Apop <- Apop[2:length(Apop)]
 d <- distance(Apop, method = "chord")
 fit <- hclust(as.dist(d), method="ward.D")
