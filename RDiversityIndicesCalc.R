@@ -108,10 +108,3 @@ orderlySpliting <- function(x, column, n, header) {
   Depths <- setNames(Depths, paste0(header, unique(rep(1:n))))
   list2env(Depths, globalenv())
 }
-
-  
-  image1 <-image(, xaxt= "n", yaxt= "n",lwd=5, useRaster = FALSE,  col = grey(seq(0, 1)))
-  image1 <- image1+axis( 2, at=seq(0,1,length.out=ncol( Apop ) ), labels= colnames( Apop ), las= 2 )
-  image1 <- image1+axis( 1, at=seq(0,1,length.out=nrow( Apop ) ), labels= (A$depth), las= 2)
-  image1 <- image1+axis( 3, at=seq(0,1,length.out=nrow( Apop ) ), labels= (A$STATION), las= 1)
-  

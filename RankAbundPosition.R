@@ -13,24 +13,6 @@ ggplot(Adiv.abiotic2, aes(x = Richness , y = Evenness.SW)) + geom_point(size=5, 
 ggplot(Adiv.abiotic2, aes(x = SpA , y = Evenness.SW)) + geom_point(size=5, alpha=.6, label= Adiv.abiotic2$SpA)+ggtitle("Kuroshio Abundance vs. Evenness")                              
 ggplot(Adiv.abiotic2, aes(x =Richness,y=Evenness.SW)) + geom_point(size=5, alpha=.6, label= Adiv.abiotic2$Richness)+ggtitle("Kuroshio Richness vs. Evenness") 
 
-min <- c(0, 1, 26, 51, 76, 101)
-max <- c(2, 25, 50, 75, 100, 150)
-grouprange <- data.frame(min, max)
-DivideByQuality <- function(data, column, groups, logical){ #function to divide a dataset into groups by any single column
-  #data is the dataset or matrix to be used
-  #column is the column by which to sort
-  #group amount is the number of groups desired
-  #unifrom is the option to have a uniform interval or to specify a custom interval
-  #note: function will use the entire range of the column chosen and that column must be quantitative
-      A <- data[which(data[, column] <= groups[],]
-      
-      
-      
-      lapply2 <- function(groups, f) {
-        output <- vector("data.frame")
-      }
-  } else {
- 
 
 
 S.A <-Surface[1:7,]
@@ -166,37 +148,37 @@ summary(lm(sigPoDen~SpA, data=Adiv.abiotic2))
 
 #Surface DistFrom Front imposed over whole data set!
 
-A<- Adiv.abiotic2[which(Adiv.abiotic2[, 1]=="A"),]
-Adist<- cbind(A$longitude, A$latitude)
+A<- Adiv.abiotic[which(Adiv.abiotic[,"lon"]==143.5),]
+Adist<- cbind(A$lon, A$lat)
 dist1<- distm(Adist)
 distance <- dist1[1,]*-.001
 ADfromF<-distance+89.70125
-B <- Adiv.abiotic2[which(Adiv.abiotic2[, 1]=="B"),]
-Bdist<- cbind(B$longitude, B$latitude)
+B <- Adiv.abiotic[which(Adiv.abiotic[, "lon"]==144.0),]
+Bdist<- cbind(B$lon, B$lat)
 bdist2<- distm(Bdist)
 distance1 <- bdist2[1,]*.001
 BDfromF <-distance1
-C<- Adiv.abiotic2[which(Adiv.abiotic2[, 1]=="C"),]
-Cdist<- cbind(C$longitude, C$latitude)
+C<- Adiv.abiotic[which(Adiv.abiotic[, "lon"]==144.5),]
+Cdist<- cbind(C$lon, C$lat)
 dist3 <- distm(Cdist)
 distance2 <- dist3[1,]*-.001
 CDfromF <-distance2+79.3708
-D <-Adiv.abiotic2[which(Adiv.abiotic2[, 1]=="D"),]
-Ddist<- cbind(D$longitude, D$latitude)
+D <-Adiv.abiotic[which(Adiv.abiotic[, "lon"]==145.0),]
+Ddist<- cbind(D$lon, D$lat)
 dist4 <- distm(Ddist)
 distance3 <- dist4[1,]*.001
 DDfromF <-distance3-23.065398
-E<- Adiv.abiotic2[which(Adiv.abiotic2[, 1]=="E"),]
-Edist<- cbind(E$longitude, E$latitude)
+E<- Adiv.abiotic[which(Adiv.abiotic[, "lon"]==145.5),]
+Edist<- cbind(E$lon, E$lat)
 dist5 <- distm(Edist)
 distance4 <- dist5[1,]*-.001
 EDfromF <-distance4
 DfromF <- c(ADfromF, BDfromF, CDfromF, DDfromF,EDfromF)
-Adiv.abiotic2<-cbind(DfromF,Adiv.abiotic2)
+Adiv.abiotic<-cbind(Adiv.abiotic, DfromF)
 #Making graphs for this stuff
 Adiv.abiotic2$A<- as.factor(Adiv.abiotic2$A)
 Ad <- ggplot(Adiv.abiotic2, aes(x = DfromF, y = SpA, colour=Richness)) + geom_point(size=5, alpha=.6, label= Adiv.abiotic2$Richness) + scale_color_gradientn(colours=jet.colors(7), na.value="black", space="rgb", guide="colourbar")+ggtitle("Cell Count Abundance/Distance from the Front")
 Ad+stat_smooth(method = "lm", formula = y ~ poly(x, 2), size = 1)+guides(colour = "colorbar", barwidth = 0.5, nbin = 15, barheight = 10)
-summary(lm(DfromF~, data=IntDiverse))
+summary(lm(DfromF~Gccom, data=Adiv.abiotic))
 #guide_colourbar(title = waiver(), title.position = NULL, title.theme = NULL, title.hjust = NULL, title.vjust = NULL, label = TRUE, label.position = NULL, label.theme = NULL, label.hjust = NULL, label.vjust = NULL, barwidth = NULL, barheight = 3, nbin = 20, raster = TRUE, ticks = TRUE, draw.ulim = TRUE, draw.llim = TRUE, direction = NULL, default.unit = "line", reverse = FALSE, order = 0)
 

@@ -5,7 +5,7 @@ Euclid <- test[c(1,3:length(test))]
 Euclid <-Adiv.abiotic2[1:190,c(15,17, 19)]
 #colnames(Euclid) <- c("STATION", as.list(colnames(origin[3:(length(origin)-1)])))
 Euclid[Euclid>0]<- 1 
-d <- dist(Euclid) # distance matrix
+d <- dist(Euclid, method="ward") # distance matrix
 fit <- hclust(d)
 #mfit <- Mclust(Euclid)
 #dend <- plot(fit, hang=-1)
