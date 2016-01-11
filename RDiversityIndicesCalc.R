@@ -63,7 +63,7 @@ AbioticCluster <- function(data, clade) { #Creates a cluster analysis for groupi
 
 NPfactorInColor <- function(data, xvar="", yvar="", factors="", xlab="", ylab="", title=""){ #Plots the clade data for abiotic
   #data is the data frame, x is the x axis, y is the y axis, factor is the factor to be put in color
-  myColors <- brewer.pal(3,"Set1")
+  myColors <- brewer.pal(3, "Set1")
   names(myColors) <- levels(factor)
   colScale <- scale_colour_manual(name = "Cluster",values = myColors)
   EU <- ggplot(data, aes_string(x=xvar,y=yvar, colour=aes(factor(factors))),  environment = environment())+geom_point(size=7, alpha=.9, label="Cluster", position=position_dodge(), stat="identity")
@@ -79,7 +79,7 @@ NPfactorInColor <- function(data, xvar="", yvar="", factors="", xlab="", ylab=""
   
   #Temporary
   
-  EU <- ggplot(Adiv.abiotic, aes(x =lat, y =depth..m., colour=factor(Gccom), label=station))+ geom_point(size=7, alpha=.9, label=c, position=position_dodge(), stat="identity", )#+scale_color_gradientn(colours=jet.colors(7), space="rgb", guide="colourbar")
+  EU <- ggplot(Adiv.abiotic[which("depth..m."==0)], aes(x =lat, y =depth..m., colour=factor(Gccom), label=station))+ geom_point(size=7, alpha=.9, label=c, position=position_dodge(), stat="identity", )#+scale_color_gradientn(colours=jet.colors(7), space="rgb", guide="colourbar")
   EU <- EU+geom_text(aes(label=station),hjust=0, vjust=-.5)
   EU <- EU+labs(x="Salinity", y="Theta")+stat_contour(z=Adiv.abiotic$sigPoDen, binwidth = 2)
   EU <- EU+theme(axis.title.x = element_text(color="cadet blue", vjust=-0.35, size=20, face="bold"), axis.title.y = element_text(color="cadetblue" , vjust=0.35, size=20, face="bold"))
@@ -107,4 +107,57 @@ orderlySpliting <- function(x, column, n, header) {
   Depths <- split(x,rep(1:n, ceiling(length(x)/n),length.out = length(x)))
   Depths <- setNames(Depths, paste0(header, unique(rep(1:n))))
   list2env(Depths, globalenv())
+}
+# ordering a triangular heat map for correlation
+reorder_cormat <- function(cormat){
+  # Use correlation between variables as distance
+  dd <- as.dist((1-cormat)/2)
+  hc <- hclust(dd)
+  cormat <-cormat[hc$order, hc$order]
+}
+get_upper_tri <- function(cormat){
+  cormat[lower.tri(cormat)]<- NA
+  return(cormat)}
+#### An attempted hack of preston lines. Hasn't worked so far.
+lines.preston <-
+  function(x, xadjust = 0.5, ...)
+  {
+    oct <- as.numeric(names(x)) - xadjust 
+    lines(oct, x, ...)
+  }
+#An attempted hack of logkda.pari(a,...). This function currently not working.
+
+logkda.pari <- function (a, numerical = TRUE)
+{
+  if ((system("gp --version", intern = FALSE, ignore.stderr = TRUE)) !=
+      0) {
+    warning("pari/gp not installed: method changed to 'polyn'")
+    return(logkda.polyn(a))
+  }
+  pari_string <- "\n allocatemem(); \n allocatemem();\n allocatemem(); \n allocatemem()
+  logKDAvec(abund) =\n {\n
+  local(S,J,n,m,k,k0,k1,k2,Told,Tnew,specabund,i,j,Sdiff,cnt1,cnt2);\n
+  abund = vecsort(abund);\n S = length(abund);\n J = sum(k =
+  1,S,abund[k]);\n maxabund = abund[S];\n Sdiff = 1; for(i =
+  2,S,if(abund[i] != abund[i - 1],Sdiff++));\n specabund =
+  matrix(2,Sdiff,i,j,0); specabund[1,1] = abund[1]; specabund[2,1] = 1;\n
+  cnt1 = 1; cnt2 = 1;\n for(i = 2,S,\n    if(abund[i] != abund[i - 1],\n
+  cnt1++;\n        cnt2 = 1;\n        specabund[1,cnt1] =
+  abund[i];\n        specabund[2,cnt1] = cnt2\n    ,\n        cnt2++;\n
+  specabund[2,cnt1] = cnt2\n    )\n );\n\n polyn = vector(1,i,1);\n i
+  = 1;\n if(specabund[1,i] == 1,i++);\n Told = vector(1,i,1);\n for(n =
+  2,maxabund,\n    Tnew = vector(n,m,(n > m) * Told[min(n-1,m)] +
+  Told[max(1,m - 1)] * (m - 1)/(n - 1) + 0. );\n    if(n ==
+  specabund[1,i],\n        for(k0 = 1,specabund[2,i],\n
+  lenpolyn2 = length(polyn) + length(Tnew) - 1;\n           polyn =
+  vector(lenpolyn2,k1,sum(k2 = max(1,k1 + 1 -
+  length(Tnew)),min(length(polyn),k1),polyn[k2] * Tnew[k1 + 1 - k2]));\n\n
+  );\n        i++;\n    );\n    Told = vector(n,m,Tnew[m]);\n );\n
+  logKDA = log(polyn);\n\n logKDA\n }\n "
+  if (isTRUE(as.logical(Sys.info()[1] == "Windows"))) {
+    return(.logkda.pari.windows(a, numerical, pari_string))
+  }
+  else {
+    return(.logkda.pari.unix(a, numerical, pari_string))
+  }
 }

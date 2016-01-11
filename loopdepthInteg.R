@@ -1,10 +1,11 @@
-depth <- as.numeric(Adiv.abiotic2$depth)
-origin <- read.csv("OriginalPhytoplankton.csv")#csv for all species and groups
+depth <- as.numeric(All$depth)
+origin <- OriginalPhytoplankton.csv #csv for all species and groups
 #For all groups and species
 DIphyto.or <- cbind(depth, origin)
 DIphyto.or$STATION <- as.list(DIphyto.or$STATION)
 #For just species
-DIphyto <- cbind(depth, test)
+depth <- depth[-c(186:190)]
+DIphyto <- cbind(depth, test[ -c(186:190), 1:2], centitest[4:ncol(centitest)])
 DIphyto$STATION <- as.list(DIphyto$STATION)
 
 # number of unique stations and corresponding rows
@@ -23,55 +24,44 @@ for(i in 1:length(SL)){
     phytoInt[i,] <- as.matrix(phytoInt[i,] + (-dz*phyto))
 }
 }
-DIp <- (Adiv.abiotic2[which(Adiv.abiotic2[,7]==0),])
-DIp <- rbind(DIp[1:6,], Adiv.abiotic2[31,], DIp[7:40,])
+DIp <- (All[which(All[, "depth..m."]==0),])
+DIp <- DIp[-40,]
+phytoInt <- phytoInt[-7,]
+PhyInt<- phytoInt
 rownames(DIp)<- NULL
-DIp <- DIp[,-c(6,7,10:39)]
-DIp <- cbind(DIp, phytoInt)
-sigPoDen <- c(Surface[1:6,19], Adiv.abiotic2[31, 19], Surface[7:40, 19])
-S <- c(Surface[1:6,17], Adiv.abiotic2[31, 17], Surface[7:40, 17])
-Theta <- c(Surface[1:6,15], Adiv.abiotic2[31, 15], Surface[7:40, 15])
-SpR <- apply(DIp[8:78], 1, function(x) sum(x>0)) #species richness all phytoplankton not just diatom and dinoflagellate
-SpA <- apply(DIp[8:78], 1, function(x) sum(x))
-SD <- apply(DIp[8:78], 1, function(x) (sum(x*(x-1)))/(sum(x)*(sum(x)-1)))
-SimE <- (1/SD)/SpR
-SW <- apply(DIp[8:78], 1, function(x) (x/sum(x))*(-log(x/sum(x))))
-SWD <- colSums (SW, na.rm=T) #Shannon Wiener Diversity Index 
-ShannonE <- SWD/log(SpR) #Eveness
-DiversityI <- data.frame(Richness=SpR, Cellcount=SpA, ShannonWiener=SWD, Simpson=SD, Evenness.SW=ShannonE, Evenness.Sim=SimE)
-IntDiverse <- cbind(DIp[1:6], DiversityI, S, Theta, sigPoDen)
+IntDiverse <- Create.Diversity.I(phytoInt, 1, 71)
+IntBiotic <- cbind(IntDiverse, DIp)
 colnames(phytoInt) <- c(as.list(colnames(test[3:73])))
-as.factor(colnames(phytoInt))
-#For all species and group
-SL <- (unique(DIphyto.or$STATION))
+#------------------------phytoInt-------------------
+#Now lets cluster the plankton
+phytoInt[phytoInt>0]<- 1 
+phytoInt <- phytoInt[-40,]
+IntD <- vegdist(phytoInt, method="jaccard")
+IntH <- hclust(IntD, method="complete")
+intclus <- cutree(IntH, 3)
+IntBiotic <- cbind(intclus, IntBiotic[-40,])
+summary(lm(intclus~S, data=IntBiotic))
+ColorDendrogram(IntH, y = intclus, labels = names(intclus), main = "IntBiotic", branchlength = 2)
+NPfactorInColor(IntBiotic, xvar="lon", yvar= "lat", IntBiotic$intclus, xlab="Latitude", ylab="Depth", title="IntBiotic")
+#
 
-phytoInt.or <- matrix(0,length(SL),79)
+#Cluster the water
+Surf <- cbind(DIp$T.C., DIp$S)
+Surf <- Surf[-40,]
+Surf <- scale(Surf)
+SurfD <- vegdist(Surf, method="euclidean")
+Surflist <- as.matrix(SurfD)
+SurfH <- hclust(SurfD, method="complete")
+Surfclus <- cutree(SurfH, 3)
+SurfBiotic <- IntBiotic[-40,]
+SurfBiotic <- cbind(Surfclus, SurfBiotic)
+ColorDendrogram(SurfH, y = Surfclus, labels = names(Surfclus), main = "Surface", branchlength = 2)
+NPfactorInColor(SurfBiotic, xvar="lon", yvar= "lat", SurfBiotic$Surfclus, xlab="Latitude", ylab="Longitude", title="Surface")
+#Look at species specific to the cluster
+phytoInt2 <- as.data.frame(cbind(intclus, PhyInt))
+SplitData(phytoInt2, 1, 'PhyInt')
 
-for(i in 1:length(SL)){
-  Station <- toString(SL[i])
-  n <- nrow(DIphyto.or[which(DIphyto.or$STATION==Station),])
-  data <-DIphyto.or[which(DIphyto.or$STATION==Station),]
-  for (z in 1:(n-1)){
-    z1=z+1
-    dz <- data[z,1]-data[z1,1] #apply(data[1,z], 2, function(x) x-x2)
-    phyto <- (data[z1, 4:82]+data[z, 4:82])/2
-    phytoInt.or[i,] <- as.matrix(phytoInt.or[i,] + (-dz*phyto))
-  }
-}
-DIp.or <- (Adiv.abiotic2[which(Adiv.abiotic2[,5]=="S"),])
-DIp.or <- rbind(DIp.or[1:6,], Adiv.abiotic2[31,], DIp.or[7:40,])
-rownames(DIp.or) <- NULL
-DIp.or <- DIp.or[,-c(5,6,9:38)]
-DIp.or <- cbind(DIp.or, phytoInt.or)
+PhyInt1 <- PhyInt1[,colSums(PhyInt1)!=0 ]                  
+PhyInt2 <- PhyInt2[,colSums(PhyInt2)!=0 ] 
+PhyInt3 <- PhyInt3[,colSums(PhyInt3)!=0 ]
 
-SpR <- apply(DIp.or[7:84], 1, function(x) sum(x>0)) #species richness all phytoplankton not just diatom and dinoflagellate
-SpA <- apply(DIp.or[7:84], 1, function(x) sum(x))
-SD <- apply(DIp.or[7:84], 1, function(x) (sum(x*(x-1)))/(sum(x)*(sum(x)-1)))
-SimE <- (1/SD)/SpR
-SW <- apply(DIp.or[7:84], 1, function(x) (x/sum(x))*(-log(x/sum(x))))
-SWD <- colSums (SW, na.rm=T) #Shannon Wiener Diversity Index 
-ShannonE <- SWD/log(SpR) #Eveness 
-DiversityI.or <- data.frame(Richness=SpR, Cellcount=SpA, ShannonWiener=SWD, Simpson=SD, Evenness.SW=ShannonE, Evenness.Sim=SimE)
-IntDiverse.or <- cbind(DIp.or[1:6], DiversityI.or, S, Theta, sigPoDen)
-colnames(phytoInt.or) <- c(as.list(colnames(origin[3:81])))
-as.factor(colnames(phytoInt.or))
