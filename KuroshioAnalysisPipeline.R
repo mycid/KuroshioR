@@ -134,7 +134,11 @@ Kuroshio_Phytoplankton <- cbind(clades, Kuroshio_Phytoplankton)
 Kuroshio_Genus <- cbind(clades, Kuroshio_Genus)
 #Creating a list for rarefaction based on the clusters
 #AbundInf <- as.numeric(apply(test[1:185, 3:ncol(test)], 2, function(x) sum(x>0)))
+<<<<<<< HEAD
 Arc2 <- Arc.csv[,-1] #Removes one factor from the arc dataset so that it can be clustered. 
+=======
+Arc2 <- Arc[,-1] #Removes one factor from the arc dataset so that it can be clustered. 
+>>>>>>> master
 #Can use either Arc2 or Kuroshio_Phytoplankton
 SplitData(Arc2, 1, "dfcluster") #Splits Adiv.abiotic into multiple data frames based on the clusters 
 SplitData(Kuroshio_Phytoplankton, 2, 'dfcluster')
@@ -220,7 +224,11 @@ Deeplets <- sum(clus2[which(clus2==2 | clus2==1)])
 Oyalets <- sum(clus3[which(clus3==2 | clus3==1)])
 
 ####################################################
+<<<<<<< HEAD
 Euclid <- test[-c(186:190), c(3:length(test))]
+=======
+Euclid <- bigtest[-c(186:190), c(3:length(bigtest))]
+>>>>>>> master
 #Adiv.abioticC <- Adiv.abiotic[-c(which(rowSums(Euclid!=0)==FALSE))]
 #Euclid <- Euclid[rowSums(Euclid)!=0, ] 
 Euclid[Euclid>0]<- 1 
@@ -311,6 +319,7 @@ bigmatrix <- get_upper_tri(cormat)
 upper_tri <- as.data.frame(bigmatrix)
 melted_cormat <- melt(bigmatrix)
 melted_cormat <- na.omit(melted_cormat)
+<<<<<<< HEAD
 
 # Create a ggheatmap
 ggheatmap <- ggplot(melted_cormat, aes(X2, X1, fill = value))+
@@ -412,6 +421,106 @@ optimal.params.gst(t(Kuroshio), exact = TRUE, ci = FALSE, cint = c(0.025, 0.975)
 #
 l <- logkda.R(phytoInt[2,], use.brob=TRUE)  # Use logkda() if pari/gp is available
 
+=======
+
+# Create a ggheatmap
+ggheatmap <- ggplot(melted_cormat, aes(Var2, Var1, fill = value))+
+  geom_tile(color = "white")+
+  scale_fill_gradient2(low = "blue", high = "red", mid = "white", 
+                       midpoint = 0, limit = c(-1,1), name="Pearson\nCorrelation") +
+  theme_minimal()+ # minimal theme
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, 
+                                   size = 12, hjust = 1))+
+  coord_fixed()
+
+# Print the heatmap
+print(ggheatmap)
+#
+ggheatmap + 
+  geom_text(aes(Var2, Var1, label = value), color = "black", size = 4) +
+  theme(
+    axis.title.x = element_blank(),
+    axis.title.y = element_blank(),
+    panel.grid.major = element_blank(),
+    panel.border = element_blank(),
+    panel.background = element_blank(),
+    axis.ticks = element_blank(),
+    legend.justification = c(1, 0),
+    legend.position = c(0.6, 0.7),
+    legend.direction = "horizontal")+
+  guides(fill = guide_colorbar(barwidth = 7, barheight = 1,
+                               title.position = "top", title.hjust = 0.5))
+#-----------------------------------------------------------
+
+DiaOver <- (bigtest$Diatoms/bigtest$Dinoflagellates)
+DiaOver <- DiaOver[-c(186:190)]
+Adiv.abiotic<- cbind(Adiv.abiotic, DiaOver="DiaOverDino")
+EU <- ggplot(Adiv.abiotic[which("depth..m."==0),], aes(x =lat, y =depth..m., colour=DiaOverDino, label=round(DiaOverDino,2)))+ geom_point(size=7, alpha=.9, label=c, position=position_dodge(), stat="identity", )+scale_color_gradientn(colours=jet.colors(7), space="rgb", guide="colourbar")
+EU <- EU+geom_text(aes(label=round(DiaOverDino,2)),hjust=0, vjust=-.5)
+EU <- EU+labs(x="Salinity", y="Theta")+stat_contour(z=Adiv.abiotic$sigPoDen, binwidth = 2)
+EU <- EU+theme(axis.title.x = element_text(color="cadet blue", vjust=-0.35, size=20, face="bold"), axis.title.y = element_text(color="cadetblue" , vjust=0.35, size=20, face="bold"))
+CF <- EU+theme(axis.text.x=element_text(size=20, vjust=0.5), axis.text.y=element_text(size=20, vjust=.05))
+CF #Temporary
+Adiv.abiotic["depth..m."==0]
+##---------------------------------------------------------
+species.count(t(test[,c(3:length(test))]))
+plot(species.count(t(test[,c(3:length(test))])),type="b")
+matplot(species.table(t(test[,c(3:length(test))])),type="l",lty=1)
+optimal.params.sloss(t(test[,c(3:73)]))
+optimal.params.sloss(t(test[,c(3:73)]), nbres = 10, ci = TRUE, cint = c(0.025, 0.975))
+#Examples
+a <- untb(start=rep(1,50), prob=0.01, gens=2000, keep=TRUE)
+plot(species.count(a),type="c")
+matplot(species.table(a),type="l",lty=1)
+##
+PrestonR <- count(colSums(test[,c(3:length(test))]))
+Preston<- preston(PrestonR, 16)*.1
+summary.count(PrestonR)
+optimal.prob(PrestonR)
+plot(PrestonR)
+plot.preston(Preston)
+#Changing cell volumes to centi litters. A,B,C transects are .08, D and E are .1
+centitest <- rbind(EuclidLon143.5[3:ncol(EuclidLon143.5)]/80, EuclidLon144[3:ncol(EuclidLon144)]/80, EuclidLon144.5[3:ncol(EuclidLon144.5)]/80, EuclidLon145[3:ncol(EuclidLon145)]/100, EuclidLon145.5[3:ncol(EuclidLon145.5)]/100)
+centitest <- cbind(clades, centitest)
+SplitData(centitest, 2, 'dfcluster')
+
+#finding the optimal theta and m coefficients for all three water mass clusters
+#Also setting up PrestonPlots for each
+#Kuroshio
+Kuroshio <- dfcluster1[,-c(1:3)]
+Kuroshio <- Kuroshio[,which(colSums(Kuroshio)>0)]
+KuroSum <- apply(Kuroshio, 2, function(x) sum(x))#sumrows
+PresK <- count(KuroSum)
+PrestonK<-preston(PresK)
+plot.preston(PresK, main="Kuroshio")
+plot.preston(PrestonK, main="Kuroshio")
+#Oyashio
+Oyashio <- dfcluster3[,-c(1:4)]
+Oyashio <- Oyashio[,which(colSums(Oyashio)>0)]
+OyaSum <- apply(Oyashio, 2, function(x) sum(x))#sumrows
+PresO <- count(OyaSum)
+PrestonO<-preston(PresO)
+plot.preston(PresO, main="Oyashio")
+plot.preston(PrestonO, main="Oyashio")
+#Deep
+Deep <- dfcluster2[,-c(1:4)]
+Deep <- Deep[,which(colSums(Deep)>0)]
+DeepSum <- apply(Deep, 2, function(x) sum(x))#sumrows
+PresD <- count(DeepSum)
+PrestonD<-preston(PresD)
+plot.preston(PresD, main="Deep")
+plot.preston(PrestonD, main="Deep")
+plot()
+#Forming a main dataset to estimate parameters for each one of these
+####
+
+optimal.theta(PresK, N=100)
+optimal.params.sloss(t(Kuroshio), nbres=10)
+optimal.params.gst(t(Kuroshio), exact = TRUE, ci = FALSE, cint = c(0.025, 0.975), nbres = 100)
+#
+l <- logkda.R(phytoInt[2,], use.brob=TRUE)  # Use logkda() if pari/gp is available
+
+>>>>>>> master
 T <- optimal.params(phytoInt[1,], log.kda=l)  #compare his answer of 7.047958 and 0.22635923.
 T1<- optimal.params(phytoInt[2,], log.kda=l)  #compare his answer of 7.047958 and 0.22635923.
 

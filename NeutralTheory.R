@@ -1,9 +1,12 @@
+<<<<<<< HEAD
 #Neutral Parameters calculation function. Data input MUST be a matrix for the function to work. 
 #S=Shannon Wiener, J=number of individuals, 
 centitest<- as.matrix(centitest[4:74]) #Converts centitest to propper format and gets rid of clusters
 centiStation <- as.matrix(centiStation)
   
   
+=======
+>>>>>>> master
 NeutralParams <- function (data) 
 {  
    S<- apply(data, 1, function(x) sum(x>0))
@@ -11,14 +14,21 @@ NeutralParams <- function (data)
    H<- apply(data, 1, function(x) (x/sum(x))*(-log(x/sum(x)))) #Shannon Wiener Diversity precursor
    H <- colSums (H, na.rm=T) #Shannon Wiener Diversity Index 
    Neut <- cbind(S, J, H)
+<<<<<<< HEAD
    Neutral <- data.frame(matrix(ncol=2, nrow=nrow(data)))
    colnames(Neutral) <- c(x="Theta", y="m")
     for(i in 1:nrow(data)) {
+=======
+   d<- c("Theta", "m")
+   Neutral <- data.frame(x=2,y=39)
+   for(i in 1:nrow(data)) {
+>>>>>>> master
     
      l<- logkda.R(data[i,], use.brob=TRUE)  # Use logkda() if pari/gp is available
      z<- optimal.params(data[i,], log.kda=l)
      Neutral[i,] <- as.matrix(z)
    }
+<<<<<<< HEAD
    colnames(Neutral) <- c(x="Theta", y="m")
    Neutral <- cbind(Neut, Neutral)
    return(Neutral)
@@ -76,12 +86,47 @@ NeutralTest <- function(data, rep=1000)
   return(P)
  }
 NeutralTest(Neutral)
+=======
+   colnames(Neutral) <- c("Theta", "m")
+   Neutral <- cbind(Neut, Neutral)
+   return(Neutral)
+}
+#Build 
+NeutralTest <- function(data, reps=1000)
+{
+  for (i in 1:nrow(data)) {
+    S <- data[i, 1]
+    Theta <- data[i, "Theta"]
+    m <- data[i, "m"]
+    J <- data[i, "J"]
+    Hdist<- list(replicate(
+      repeat{
+        NSim <- rand.neutral(J, Theta, string="spp.")
+        s <- sum(which(NSim>0))
+        if (s!=S) {
+      break
+        }
+    H<- (Nsim/sum(Nsim))*(-log(Nsim/sum(Nsim)))
+    H<- sum(H, na.rm=T) #Shannon Wiener Diversity Index 
+        }
+    ,reps))
+    p<- t.test(Hdist,mu=data[i, "H"])
+    P[i] <- as.numeric(p[3]) # Ho: mu=3
+  }
+  return(P)
+ }
+S <- Neutral[1, "S"]
+Theta <- Neutral[1, "Theta"]
+m <- Neutral[1, "m"]
+J <- Neutral[1, "J"]
+>>>>>>> master
 
   repeat{
     a <- sum(H, na.rm=T) #Shannon Wiener Diversity Index 
     NSim <- rand.neutral(J, Theta, string="spp.")
     H<- (NSim/sum(NSim))*(-log(NSim/sum(NSim)))
     s <- length(NSim)
+<<<<<<< HEAD
      if (s==S) {
       break
     }
@@ -129,4 +174,10 @@ J <- Neutral[1, "J"]
 
 
 
+=======
+     if (s!=S) {
+      break
+    }
+  }
+>>>>>>> master
   

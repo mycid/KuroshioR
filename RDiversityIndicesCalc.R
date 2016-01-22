@@ -79,7 +79,11 @@ NPfactorInColor <- function(data, xvar="", yvar="", factors="", xlab="", ylab=""
   
   #Temporary
   
+<<<<<<< HEAD
   EU <- ggplot(Adiv.abiotic[which("depth..m."==0)], aes(x =lat, y =depth..m., colour=factor(Gccom)))+ geom_point(size=7, alpha=.9, position=position_dodge(), stat="identity", )#+scale_color_gradientn(colours=jet.colors(7), space="rgb", guide="colourbar")
+=======
+  EU <- ggplot(Adiv.abiotic[which("depth..m."==0)], aes(x =lat, y =depth..m., colour=factor(Gccom), label=station))+ geom_point(size=7, alpha=.9, label=c, position=position_dodge(), stat="identity", )#+scale_color_gradientn(colours=jet.colors(7), space="rgb", guide="colourbar")
+>>>>>>> master
   EU <- EU+geom_text(aes(label=station),hjust=0, vjust=-.5)
   EU <- EU+labs(x="Salinity", y="Theta")+stat_contour(z=Adiv.abiotic$sigPoDen, binwidth = 2)
   EU <- EU+theme(axis.title.x = element_text(color="cadet blue", vjust=-0.35, size=20, face="bold"), axis.title.y = element_text(color="cadetblue" , vjust=0.35, size=20, face="bold"))
