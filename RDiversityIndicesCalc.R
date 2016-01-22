@@ -66,7 +66,7 @@ NPfactorInColor <- function(data, xvar="", yvar="", factors="", xlab="", ylab=""
   myColors <- brewer.pal(3, "Set1")
   names(myColors) <- levels(factor)
   colScale <- scale_colour_manual(name = "Cluster",values = myColors)
-  EU <- ggplot(data, aes_string(x=xvar,y=yvar, colour=aes(factor(factors))),  environment = environment())+geom_point(size=7, alpha=.9, label="Cluster", position=position_dodge(), stat="identity")
+  EU <- ggplot(data, aes_string(x=xvar,y=yvar, colour=aes(factor(factors))),  environment = environment())+geom_point(size=7, alpha=.9, position=position_dodge(), stat="identity")
   EU <- EU+labs(x=xlab, y=ylab, colour="Cluster")+ggtitle(title)+theme_bw(base_size = 12, base_family = "Helvetica")
   #theme(panel.background = element_rect(fill = 'white'), plot.background = element_rect(fill = 'blue'),
   #legend.title = element_text( colour="black", size=33, face="bold"), legend.key.height=unit(1, "cm"), legend.key.width=unit(1, "cm"), 
@@ -79,7 +79,11 @@ NPfactorInColor <- function(data, xvar="", yvar="", factors="", xlab="", ylab=""
   
   #Temporary
   
+<<<<<<< HEAD
+  EU <- ggplot(Adiv.abiotic[which("depth..m."==0)], aes(x =lat, y =depth..m., colour=factor(Gccom)))+ geom_point(size=7, alpha=.9, position=position_dodge(), stat="identity", )#+scale_color_gradientn(colours=jet.colors(7), space="rgb", guide="colourbar")
+=======
   EU <- ggplot(Adiv.abiotic[which("depth..m."==0)], aes(x =lat, y =depth..m., colour=factor(Gccom), label=station))+ geom_point(size=7, alpha=.9, label=c, position=position_dodge(), stat="identity", )#+scale_color_gradientn(colours=jet.colors(7), space="rgb", guide="colourbar")
+>>>>>>> master
   EU <- EU+geom_text(aes(label=station),hjust=0, vjust=-.5)
   EU <- EU+labs(x="Salinity", y="Theta")+stat_contour(z=Adiv.abiotic$sigPoDen, binwidth = 2)
   EU <- EU+theme(axis.title.x = element_text(color="cadet blue", vjust=-0.35, size=20, face="bold"), axis.title.y = element_text(color="cadetblue" , vjust=0.35, size=20, face="bold"))
