@@ -1,12 +1,11 @@
 #Downloading all csv files to the Global Environment
-  folder <- getwd() #sets directory as an object/path to folder that holds multiple .csv files
-  file_list <- list.files(path=folder, pattern="*.csv") # create list of all .csv files in folder
+  #folder <- getwd() #sets directory as an object/path to folder that holds multiple .csv files
+  #file_list <- list.files(path=folder, pattern="*.csv") # create list of all .csv files in folder
   # read in each .csv file in file_list and create a data frame with the same name as the .csv file
-  for (i in 1:length(file_list)){
-    assign(file_list[i], 
-         read.csv(paste(folder, '/', file_list[i], sep=''))
-  )
-  }
+  #for (i in 1:length(file_list)){
+   #read.csv(paste(folder, '/', file_list[i], sep=''))
+  #}
+  
 
 #Making diversity Indices for any data frame with species and abundance
   #s=the column starting point in the data frame for the function
@@ -75,31 +74,24 @@ NPfactorInColor <- function(data, xvar="", yvar="", factors="", xlab="", ylab=""
   CF <- EU+theme(axis.text.x=element_text(size=20, vjust=0.5), axis.text.y=element_text(size=20, vjust=.05))
   return(CF)
   }
-  
-  
   #Temporary
-  
-<<<<<<< HEAD
-  EU <- ggplot(Adiv.abiotic[which("depth..m."==0)], aes(x =lat, y =depth..m., colour=factor(Gccom)))+ geom_point(size=7, alpha=.9, position=position_dodge(), stat="identity", )#+scale_color_gradientn(colours=jet.colors(7), space="rgb", guide="colourbar")
-=======
-  EU <- ggplot(Adiv.abiotic[which("depth..m."==0)], aes(x =lat, y =depth..m., colour=factor(Gccom), label=station))+ geom_point(size=7, alpha=.9, label=c, position=position_dodge(), stat="identity", )#+scale_color_gradientn(colours=jet.colors(7), space="rgb", guide="colourbar")
->>>>>>> master
-  EU <- EU+geom_text(aes(label=station),hjust=0, vjust=-.5)
-  EU <- EU+labs(x="Salinity", y="Theta")+stat_contour(z=Adiv.abiotic$sigPoDen, binwidth = 2)
-  EU <- EU+theme(axis.title.x = element_text(color="cadet blue", vjust=-0.35, size=20, face="bold"), axis.title.y = element_text(color="cadetblue" , vjust=0.35, size=20, face="bold"))
-  CF <- EU+theme(axis.text.x=element_text(size=20, vjust=0.5), axis.text.y=element_text(size=20, vjust=.05))
-  CF #Temporary
+  #EU <- ggplot(Adiv.abiotic[which("depth..m."==0)], aes(x =lat, y =depth..m., colour=factor(Gccom)))+ geom_point(size=7, alpha=.9, position=position_dodge(), stat="identity", )#+scale_color_gradientn(colours=jet.colors(7), space="rgb", guide="colourbar")
+  #EU <- ggplot(Adiv.abiotic[which("depth..m."==0)], aes(x =lat, y =depth..m., colour=factor(Gccom), label=station))+ geom_point(size=7, alpha=.9, label=c, position=position_dodge(), stat="identity", )#+scale_color_gradientn(colours=jet.colors(7), space="rgb", guide="colourbar")
+  #EU <- EU+geom_text(aes(label=station),hjust=0, vjust=-.5)
+  #EU <- EU+labs(x="Salinity", y="Theta")+stat_contour(z=Adiv.abiotic$sigPoDen, binwidth = 2)
+  #EU <- EU+theme(axis.title.x = element_text(color="cadet blue", vjust=-0.35, size=20, face="bold"), axis.title.y = element_text(color="cadetblue" , vjust=0.35, size=20, face="bold"))
+  #CF <- EU+theme(axis.text.x=element_text(size=20, vjust=0.5), axis.text.y=element_text(size=20, vjust=.05))
+  #CF #Temporary
 
   #Function for splitting data by numbered factors
   SplitData <- function(data, column, header) { #data=dataframe, column=the the number of the column desired to be used as a numerical factor, header is the title of the data frames without the numbers at the end. MUST BE IN PARATHESES
   libr <- setNames(split(data, data[, column]), paste0(header, unique(data[,column]))) #Seperates the dataframe into multiple dataframes based on the factor
   list2env(libr, globalenv()) #Exports both s and each individual, new data frame to the global environment 
   }
-  
  
   #Experimenting with functions for column division
 
-x=Adiv.abiotic
+#x=Adiv.abiotic
 orderlySpliting <- function(x, column, n, header) { 
 #Function evenly (as possible)  
 #divides data into a set number of groups
@@ -165,3 +157,165 @@ logkda.pari <- function (a, numerical = TRUE)
     return(.logkda.pari.unix(a, numerical, pari_string))
   }
 }
+
+NeutralTest <- function(data, data2, rep, t.lim, Theta_Ewens=FALSE) #data & data2 must have the same number of rows for this to work.
+  #data & data2 must have only abundances of organisms for each sample, nothing else.
+{
+  startt= Sys.time()
+  P <- as.numeric(rep(0, nrow(data)))
+  ci <- as.numeric(rep(0, nrow(data)))
+  reps <- c(1:rep)
+  Hlist <- as.numeric(rep(0, nrow(data)))
+  Ho <- apply(data2, 1, function(x) (x/sum(x))*(-log(x/sum(x)))) #Shannon Wiener Diversity precursor
+  Ho <- colSums(Ho, na.rm=T)
+  Neutral_MeanH <- as.numeric(rep(0, nrow(data)))
+  Station <- data[, "Station"]
+  depth <- data[, "depth"]
+  Precise <- as.vector(rep("NA", nrow(data)))
+  
+  for (i in 1:nrow(data)) {
+    if (Theta_Ewens==TRUE) {
+      Theta <- data[i, "Theta_Ewens"]
+    } else
+    {Theta<- data[i, "Theta"]
+    }
+    S <- data[i, "S"]
+    m <- data[i, "m"]
+    J <- data[i, "J"]  
+    Hlist <- as.numeric(rep(0, rep))
+    
+    ptm <- proc.time()
+    for(z in 1:rep) {
+      elapsed <- ptm-proc.time()
+      if (elapsed[3]< -t.lim) {
+        exact=1
+        repeat{
+          Nsim <- rand.neutral(J, Theta)
+          s    <- length(Nsim) 
+          if (s>S-1 || s<S+1) break
+        }
+      } else {
+        repeat{
+          exact=0
+          Nsim <- rand.neutral(J, Theta)
+          s    <- length(Nsim) 
+          if (s==S) break
+        }}
+      
+      H <- (Nsim/sum(Nsim))*(-log(Nsim/sum(Nsim)))
+      H<- sum(H, na.rm=T) #Shannon Wiener Diversity Index 
+      Hlist[z] <- H
+    }
+    
+    if(exact==1) {
+      Precise[i] <- "FALSE"
+    } else {
+      Precise[i] <- "TRUE"
+    }
+    Neutral_MeanH[i] <- mean(Hlist)
+    p<- t.test(Hlist, mu=Ho[i])
+    ci[i]<- list(p[4])
+    P[i] <- as.numeric(p[3]) # Ho: mu=3
+    time= ptm-proc.time()
+    print(paste("station:", Station[i], "depth:", depth[i], "p-value:", P[i], "CI:", ci[i], "H observed:", Ho[i], "mean H:", Neutral_MeanH[i], "calc.time:", time, "precise?:", Precise[i]))
+  }
+  NTest <-  data.frame(Station, depth, P, Neutral_MeanH, Ho, Precise) 
+  return(NTest) 
+}
+#H <- Create.Diversity.I(centitest, 4, 82  )
+#H <- H[-c(97:99), "ShannonWiener"] #Must remove these rows for now because they had all decimals for their abundances
+# Adds Shannon values to the tetame data so a test can be performed
+#NeutralTest(CleanTetame, centitest, rep=100, 15)
+
+Stationtest<- function(data) { #Data must have depth in first row, and a column STATION written in all caps
+  SL <- (unique(data[,"STATION"]))
+  centiStation <- matrix(0,length(SL),ncol(data))
+  
+  for(i in 1:length(SL)){
+    Station <- toString(SL[i])
+    datas <- data[which(data$STATION==Station),]
+    centi<- colSums(datas[,4:74])
+    print(centi)
+    centiStation[i,] <- as.matrix(centiStation[i,]+centi)
+  }
+  return(centiStation)}
+
+NeutralParams <- function (data) 
+{  
+  S<- apply(data, 1, function(x) sum(x>0))
+  J<- apply(data, 1, function(x) sum(x))
+  H<- apply(data, 1, function(x) (x/sum(x))*(-log(x/sum(x)))) #Shannon Wiener Diversity precursor
+  H <- colSums (H, na.rm=T) #Shannon Wiener Diversity Index 
+  Neut <- cbind(S, J, H)
+  Neutral <- data.frame(matrix(ncol=2, nrow=nrow(data)))
+  colnames(Neutral) <- c(x="Theta", y="m")
+  for(i in 1:nrow(data)) {
+    d<- c("Theta", "m")
+    Neutral <- data.frame(x=2,y=39)
+    for(i in 1:nrow(data)) {
+      
+      l<- logkda.R(data[i,], use.brob=TRUE)  # Use logkda() if pari/gp is available
+      z<- optimal.params(data[i,], log.kda=l)
+      Neutral[i,] <- as.matrix(z)
+    }
+    colnames(Neutral) <- c(x="Theta", y="m")
+    Neutral <- cbind(Neut, Neutral)
+    return(Neutral)
+  }}
+
+#Every sample is is to sparse to create Neutral parameters for
+#I need to do every station instead. 
+#Can't use itegrated depth because that does not give exact number of individuals
+#Station test will create a new dataframe with all depth samples added
+#This creates a single station sample that contains all samples added over that station
+
+Stationtest<- function(data) { #Data must have depth in first row, and a column STATION written in all caps
+  SL <- (unique(data[,"STATION"]))
+  centiStation <- matrix(0,length(SL),ncol(data))
+  
+  for(i in 1:length(SL)){
+    Station <- toString(SL[i])
+    datas <- data[which(data$STATION==Station),]
+    centi<- colSums(datas[,4:74])
+    print(centi)
+    centiStation[i,] <- as.matrix(centiStation[i,]+centi)
+  }
+  return(centiStation)}
+#centiStation <- Stationtest(DIphyto)#Diphyto is a data frame made for depth integration from the loopdepthinteg.R script
+#Build
+
+CleanupTetame <- function(tetame, cutoff){
+  J <- tetame[,"J"]
+  S <- tetame[,"S"]
+  Theta <- as.numeric(rep(0, nrow(tetame)))
+  m     <- as.numeric(rep(0, nrow(tetame)))
+  Theta2<- as.numeric(rep(0, nrow(tetame)))
+  m2     <- c( as.numeric(rep(0, nrow(tetame))))
+  Station <- tetame[,"station"]
+  depth <- tetame[, "depth..m."]
+  Theta_Ewens <- tetame[, "Theta_Ewens"]
+  
+  for (i in 1:nrow(tetame)) {
+    theta1 <- tetame[i, "Theta"]
+    theta2 <- tetame[i, "Theta2"]
+    if (theta1 < theta2 && theta1<cutoff) {
+      Theta[i] <- theta1
+      m[i] <- tetame[i, "m"]
+    } else
+      if(theta2< theta1 & theta2<cutoff){
+        Theta[i] <- theta2
+        m[i] <- tetame[i, "m2"]
+      } else
+        if(theta1==theta2 & theta1<cutoff) {
+          Theta[i] <- theta1
+          m[i] <- tetame[i, "m"]
+        } else
+          if (theta1 & theta2 >cutoff)  {}
+            #{Theta[i] <- theta1
+            #m[i] <- tetame[i, "m"]
+            #Theta2[i] <- theta2
+            #m2[i] <- tetame[i, "m2"]}
+  }
+  cbind(Station, depth, S, J, Theta, m, Theta2, m2, Theta_Ewens)
+}
+

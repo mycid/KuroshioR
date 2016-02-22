@@ -1,0 +1,105 @@
+$OS.type
+[1] "unix"
+
+$file.sep
+[1] "/"
+
+$dynlib.ext
+[1] ".so"
+
+$GUI
+[1] "X11"
+
+$endian
+[1] "little"
+
+$pkgType
+[1] "source"
+
+$path.sep
+[1] ":"
+
+$r_arch
+[1] ""
+
+$double.eps
+[1] 2.220446e-16
+
+$double.neg.eps
+[1] 1.110223e-16
+
+$double.xmin
+[1] 2.225074e-308
+
+$double.xmax
+[1] 1.797693e+308
+
+$double.base
+[1] 2
+
+$double.digits
+[1] 53
+
+$double.rounding
+[1] 5
+
+$double.guard
+[1] 0
+
+$double.ulp.digits
+[1] -52
+
+$double.neg.ulp.digits
+[1] -53
+
+$double.exponent
+[1] 11
+
+$double.min.exp
+[1] -1022
+
+$double.max.exp
+[1] 1024
+
+$integer.max
+[1] 2147483647
+
+$sizeof.long
+[1] 8
+
+$sizeof.longlong
+[1] 8
+
+$sizeof.longdouble
+[1] 16
+
+$sizeof.pointer
+[1] 8
+
+               _                           
+platform       x86_64-unknown-linux-gnu    
+arch           x86_64                      
+os             linux-gnu                   
+system         x86_64, linux-gnu           
+status                                     
+major          3                           
+minor          0.2                         
+year           2013                        
+month          09                          
+day            25                          
+svn rev        63987                       
+language       R                           
+version.string R version 3.0.2 (2013-09-25)
+nickname       Frisbee Sailing             
+                              sysname                               release 
+                              "Linux"                 "2.6.18-128.1.14.el5" 
+                              version                              nodename 
+"#1 SMP Wed Jun 17 06:38:05 EDT 2009"                   "compute-1-4.local" 
+                              machine                                 login 
+                             "x86_64"                               "mycid" 
+                                 user                        effective_user 
+                              "mycid"                               "mycid" 
+[1] 8
+[1] "localhost" "localhost" "localhost" "localhost" "localhost" "localhost"
+[7] "localhost" "localhost"
+
