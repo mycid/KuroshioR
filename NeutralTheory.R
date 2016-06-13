@@ -42,6 +42,7 @@ TetameResults <- read.csv("TetameResults.csv")
    
     ptm <- proc.time()
     for(z in 1:rep) {
+      print(z)
       elapsed <- ptm-proc.time()
       if (elapsed[3]< -t.lim) {
         exact=1
@@ -69,11 +70,10 @@ TetameResults <- read.csv("TetameResults.csv")
     Precise[i] <- "TRUE"
   }
     Neutral_MeanH[i] <- mean(Hlist)
-    p<- t.test(Hlist, mu=Ho[i])
+    p<- t.test(Hlist, mu=H1[i])
     ci[i]<- list(p[4])
     P[i] <- as.numeric(p[3]) # Ho: mu=3
     time= ptm-proc.time()
-    diff<- endt-startt
     print(paste("station:", Station[i], "depth:", depth[i], "p-value:", P[i], "CI:", ci[i], "H observed:", Ho[i], "mean H:", Neutral_MeanH[i], "calc.time:", time, "precise?:", Precise[i]))
     }
  NTest <-  data.frame(Station, depth, P, Neutral_MeanH, Ho, Precise) 
@@ -88,13 +88,13 @@ NTResults <- NeutralTest(CleanTetame, centitest, rep=10, 30, Theta_Ewens=FALSE)
 --------------------------------------------------------------
 # scripts sent by Chust
 
-mystation <- data.frame(centitest[1,])
+mystation <- Kuro)
 mycount <- as.count(mystation)
-plot(mycount)
+plot(PresO)
 preston(mycount,orig=TRUE)
-jj <- c(3.74597,  0.45542)
-r <- plot(preston(mycount, n=length(volkov(no.of.ind(mycount), jj, bins=TRUE)), orig=TRUE), ylab="Number of species",cex.lab=1.5, las=2)
-points(r,volkov(no.of.ind(mycount), jj, bins=TRUE),type="b", pch=19)
+jj <- c(optimal.theta(PresO),  .999)
+r <- plot(preston(PresO, n=length(volkov(no.of.ind(PresO), jj, bins=TRUE)), orig=TRUE), main="Kuroshio", xlab="Abundance bins", ylab="Number of species",cex.lab=1.5, las=2)
+points(r,volkov(no.of.ind(PresO), jj, bins=TRUE),type="b", pch=19)
 ------------------------------------------------------------------
 # stnum
 stationinfo<- Adiv.abiotic[-c(97, 98,99), c("station", "depth..m.")]

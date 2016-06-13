@@ -1,0 +1,154 @@
+---
+title: "Clustering_Rareification"
+author: "Trevor Eakes"
+date: "May 8, 2016"
+output: html_document
+---
+##Rarefaction Methods for the Kuroshio
+
+####Rarefaction is a method for comparing diversity between sample groups which may have different coverage, area, or even distributions. It estimates the relationship between how diversity such as richness or the 1st order Hill number accumulates as more individuals/samples are collected. Recent development of this package and the idea behind rarefaction now allow for using abundance in adition to frequency. Previously I could only use frequency with this idea which is statistically less powerful. 
+
+Research on rarefaction conducted by:
+Anne Chao
+National Tsing Hua University
+Ecological Statistics, biodiversity
+
+####First to prepare the data
+Note: You must have the dataframe creation Rmd in your working directory.
+It is titled Diversity&DataframeConstruction.Rmd
+```{r}
+centitest.Clade <- cbind(clades[-c(97:99),], centitest) #adding the clade t centitest
+
+#Clustering the Fillament manually by salinity and position
+Adiv.abioticR <- cbind("rows"=c(1:nrow(Adiv.abiotic)), Adiv.abiotic) # add rows to keep track of things
+Fillament <- Adiv.abioticR[which(Adiv.abioticR[, "DfromF"]>0),] #Take stations north of the front
+Fillament <- Fillament[which(Fillament[,"S"]>33.9),] #Take stations Above 33.9 salinity
+Fillament <- Fillament[which(Fillament["station"]!=2),]# must manually input single station number you want removed each time
+Fillament <- Fillament[which(Fillament["station"]!=3),]
+Fillament <- Fillament[which(Fillament["lat"]>35.99),]
+Fillament <- Fillament[which(Fillament["station"]!=2),]
+require(ggplot2)
+EU <- ggplot(Fillament, aes(x=lon, y=lat, colour=Theta)) + geom_point(size=10, position=position_dodge(), stat="identity")+scale_color_gradientn(colours=jet.colors(7), space="rgb", guide="colourbar")
+
+fillament <- centitest.Clade[Fillament$rows,]
+centitest.Clade <- centitest.Clade[-Fillament$rows,]
+SplitData(centitest.Clade, 2, 'dfcluster')
+#sums species in each cluster
+clus1 <- as.numeric(apply(dfcluster1[,5:ncol(dfcluster1)], 2, function(x) sum(x>0)))
+#gets rid of the 0's
+clus1 <- c(nrow(dfcluster1), clus1[clus1>0])
+clus2 <- as.numeric(apply(dfcluster2[,5:ncol(dfcluster2)], 2, function(x) sum(x>0)))
+clus2 <- c(nrow(dfcluster2), clus2[clus2>0])
+clus3 <- as.numeric(apply(dfcluster3[,5:ncol(dfcluster3)], 2, function(x) sum(x>0)))
+clus3 <- c(nrow(dfcluster3), clus3[clus3>0])
+clus4 <- as.numeric(apply(fillament[,5:ncol(fillament)], 2, function(x) sum(x>0)))
+clus4 <- c(nrow(fillament), clus4[clus4>0])
+
+#For abundance
+clusA1 <- as.numeric(apply(dfcluster1[,5:ncol(dfcluster1)], 2, function(x) sum(x)))
+clusA2 <- as.numeric(apply(dfcluster2[,5:ncol(dfcluster2)], 2, function(x) sum(x)))
+clusA3 <- as.numeric(apply(dfcluster3[,5:ncol(dfcluster3)], 2, function(x) sum(x)))
+clusA4 <- as.numeric(apply(fillament[,5:ncol(fillament)], 2, function(x) sum(x)))
+
+#Making Rarefaction lists for the clusters with row names
+Rarefaction <- list("Kuroshio"=clus1, "Fillament"=clus4, "Oyashio"=clus2, "Deep"=clus3)# "5"=clus5) 
+RarefactionAbund <- list("Kuroshio"=clusA1, "Fillament"=clusA4, "Oyashio"=clusA2, "Deep"=clusA3)# "5"=clus5)
+#--------------------------------------
+require(iNEXT)
+A0 <- iNEXT(RarefactionAbund, q=0,  datatype="abundance") #z is object class iNEXT. It provides all the data shown in the rarefaction graphs
+A1 <- iNEXT(RarefactionAbund, q=1,  datatype="abundance") #z is object class iNEXT. It provides all the
+
+z0 <- iNEXT(Rarefaction, q=0,  datatype="Incidence_freq") #z is object class iNEXT. It provides all the data shown in the rarefaction graphs
+z1 <- iNEXT(Rarefaction, q=1,  datatype="incidence_freq") #z is object class iNEXT. It provides all the data 
+RarefactionRichness <- ggiNEXT(A0, type = 1, facet.var = "none", color.var = "site") 
+RarefactionRichness+ylab("Richness")
+#This will be the plot I use for my talks
+RarefactionH <- ggiNEXT(A1, type = 1, facet.var = "none", color.var = "site") 
+RarefactionH+ylab("1st order Hill #")
+RarefactionCoverage <- ggiNEXT(A1, type = 2, facet.var = "none", color.var = "site")
+RarefactionCoverage+ylab("Sample coverage H1")
+#
+#Creates rarefaction graphs
+```
+
+
+```{r}
+library(gplots)  # for heatmap.2
+library(Heatplus)
+library(phyloseq)
+library(RColorBrewer)# for better color options
+
+#rounding count data
+#For rounding frequency count data and standardizing it to the sample size
+clus1c <- round(clus1/104, 2)*100
+clus2c <- round(clus2/25, 2)*100
+clus3c <- round(clus3/56, 2)*100
+
+Incidence <- data.frame(cbind(Kuroshio=clus1c, Oyashio=clus3c, Deep=clus2c)) #combining into single data frame
+
+Kuroshio_Phytoplankton <- Kuroshio_Phytoplankton.csv[-c(97:99, 186:190), -c(1,2)] #Editing base data frame, getting rid of uneaded columns and rows
+HeatAbund <- data.frame(RarefactionAbund)
+#changing to a dataframe
+row.names(HeatAbund)<-colnames(Kuroshio_Phytoplankton) #changing row names of Incidence to their true Phytoplankton names
+HeatAbund<-HeatAbund[order(HeatAbund[,1],decreasing=TRUE),] #ordering rows from greatest to smallest
+Rownames <- rownames(Incidence)
+Colnames <- cbind("Kuroshio","Fillament", "Oyashio", "Deep")
+
+col <-jet.colors(448)
+col <-c("white", col)
+# (optional) defines the color breaks manually for a "skewed" color transition
+col_breaks = c(seq(0, 1, length=50), 
+               seq(1, 2, length=50),
+               seq(2,10,length=50),              
+               seq(10,30,length=100),
+               seq(30, 100, length=100),
+               seq(100, 200, length=100))   
+dev.off()
+g <- heatmap.2(HeatAbund,
+               cellnote = HeatAbund, # same data set for cell labels
+               #offsetCol = 0.5,
+               notecol="black",      # change font color of cell labels to black
+               #density.info="none",  # turns off density plot inside color legend
+               trace="none",      # turns off trace lines inside the heat map
+               margins =c(8,12),     # widens margins around plot
+               col=col,       # use on color palette defined earlier 
+               breaks= col_breaks,    # enable color transition at specified limits
+               dendrogram="none",   # only draw a row dendrogram
+               Colv=NA,              # turn off column clustering
+               key=TRUE,
+               densadj = 0.25,
+               symkey=TRUE,
+               keysize=1.5,
+               #lmat=rbind(c(0, 3, 4), c(2,1,0 ) ), lwid=c(1.5, 4, 2 ),
+               Rowv=FALSE,
+)
+
+
+
+require(scales)
+heat <- heat+scale_fill_continuous(low="lightblue", high="#FF3300", limits=c(1,100),breaks=c(2,5, 10, 15, 20, 30, 35), na.value = "white", guide_legend(title = "% Presence", keywidth = 1, keyheight = 10))
+
+#p <- p+scale_fill_gradient2(low="lightblue", mid="yellow", high="#FF3300", limits=c(1,38),breaks=c(1, 2,5, 10, 15, 20, 30, 35), na.value = "white", guide_legend(title = "% Presence", keywidth = 1, keyheight = 3))
+heat <- heat+xlab("")
+heat <- heat+ylab("Species")
+heat <- heat+theme(axis.title.x = element_text(color="cadetblue",hjust=1, vjust=.5, size=14, face="bold"), axis.title.y = element_text(color="cadetblue" , vjust=0.35, size=12, face="bold"),
+axis.text.x=element_text(size=12, angle=330, face="bold"),
+axis.text.y=element_text(size=10, vjust=.5, hjust=1), 
+axis.text.y=element_text(size=12, vjust=.05),
+panel.background = element_rect(fill = "white"),
+plot.background = element_rect(fill = "white"),
+legend.text=element_text(size=14),
+legend.title=element_text(size=12, face="bold"),
+legend.key.height= unit(35, "mm"),
+legend.key.width = unit(8, "mm"),
+#plot.margin=unit(c(10,10,10,10),"mm"),
+strip.text = element_text(face="bold"))
+heat
+ggsave("heatmapnormal.pdf", plot= heat, device = "pdf", path = NULL, scale = 1, width = 50 , height = 100, units = "mm", dpi = 600, limitsize = TRUE)
+```
+
+
+Plotting the heat map using phyloseq
+HeatAbund <- phyloseq(otu_table(HeatAbund, taxa_are_rows=TRUE)) #converts data to the correct formal
+heat <- plot_heatmap(HeatAbund, method=NULL, na.value = "white", taxa_are_rows=TRUE,sample.order=Colnames, taxa.order= Rownames, low="lightblue", high="#FF3300", max.label=175)
+#heat

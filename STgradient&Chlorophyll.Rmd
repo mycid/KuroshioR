@@ -1,0 +1,18 @@
+---
+title: "STgradients&Chlorophyll"
+author: "Trevor Eakes"
+date: "May 8, 2016"
+output: html_document
+---
+#Preparing Chlorophyll data
+  KuroChl <- na.omit(Kuro_chl_coords.csv) #omits unknown Chlorophyll samples
+  calibrate <- lm(fluorescence~chlorophyll..ug.l., data=KuroChl) #Creates regression for calibration
+  summary(calibrate) #summarizes that regression
+  coeffs = coefficients(calibrate) #Retrieves coeffs
+  KuroChlNA <- subset(Kuro_chl_coords.csv, is.na(Kuro_chl_coords.csv$chlorophyll..ug.l.)) #subsets dataframe for NA values
+  Chlorophyll <- coeffs[1] + coeffs[2]*KuroChlNA$fluorescence #Creates estimated chlorophyll for the NA subset dataframe
+  Kuro_chl_coords.csv$chlorophyll..ug.l.[is.na(Kuro_chl_coords.csv$chlorophyll..ug.l.)] <-Chlorophyll[1:sum(is.na(Kuro_chl_coords.csv$chlorophyll..ug.l.))] 
+  #Above this takes the estimated Chlorophyll for all the NA's and writes them over the NA's in the original dataframe
+  Chlorophyll <- Kuro_chl_coords.csv$chlorophyll..ug.l.[c(1:185)] #shortens the Chlorophyll length to the main dataset, creates seperate vector
+  Fluorescence <- Kuro_chl_coords.csv$fluorescence[c(1:185)]
+  Adiv.abiotic <- cbind(Chlorophyll, Fluorescence, Adiv.abiotic) #adds Chlorophyll to the dataset

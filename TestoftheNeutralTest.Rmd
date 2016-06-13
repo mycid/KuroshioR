@@ -1,0 +1,89 @@
+---
+title: "Test of the Neutral Test"
+author: "Trevor Eakes"
+date: "May 27, 2016"
+output: word_document
+---
+
+```{r}
+require(markdown)
+require(knitr)
+require(untb)
+```
+
+A test of Neutrality was designed closely following the model created by Jabot et al. (2011), detailed in that papers suplements. The theoretical foundation and design of the test is described in Jabot et al. (2011) and sumarized here. Deviations from the test our noted for consideration. The complete Rmd. script for testing Neutrality, including associated functions were converting data have been made freely available on Github/mycid.  
+
+###1. 
+From an observed community with a given number of species (richness) and species abundances we estimate the diversity with the ubiquitous Shannon Wiener index (H). Unlike in the original test, we have instead taken the first order Hill number or $H1=e^(H)$, for accurate comparison of diversity. This number represents the number of species needed  in an ideal community of equally common species to match the observed diversity (Chao et al. 2014).My example code is as follows:
+```{r}
+data2 <- read.csv("ctfsAbund.csv") #species abundances data.frame
+
+Hill1stat <- function(dat) {
+  Ho <- apply(dat, 1, function(x) (x/sum(x))*(-log(x/sum(x)))) #Shannon Wiener Diversity precursor
+  Ho <- colSums(Ho, na.rm=T) #sum values to obtain the given Shannon Wiener number
+  H1<- exp(Ho) #Hill number transformation
+  return(H1)
+}
+(H1 <- Hill1stat(data2[,2:ncol(data2)])) #Results for each sample
+
+```
+
+###2. 
+The Neutral parameter \Theta, known as the fundamental biodiversity number (Hubbel, 2001), is then estimated using maximum likelihood estimation techniques (MLE). To estimate \Theta, two main sampling formulas exist based upon the assumptions of Neutral Theory, the Ewens method (Ewens, 1983), and the Ettiene formula (Ettiene, 2005). The key difference between these formulas is that the Ewens method assumes unlimited dispersal, where as the Ettiene formula estimates an aditional nusance parameter, m, representing migration and thus the limited forces of dispersal. Due to logistic challenges with modeling with m and with a certain respect for the principles of Information Theory, which penalizes aditional parameters in model creation, we have chosen to use the Ewen's method. Jabot et al (2011) used the Ettiene method so results may differ in this respect. \Theta was estimated with the package Tetame 2.1, also utilized by Jabot et al (2011). 
+
+###3.
+A simulation of a neutral community is run using Hubbel's sampling formula from Hubbel (2001), which models a random neutral community containing the same number of individuals (J) and same Theta value as the observed community. We create an aditional constraint, requiring that any simulated neutral community has the same number of species as the observed community. The simulated community should then be very similar to the observed community, allowed to differ only in it's evenness, and thus diversity. This is the basis for the test, a community with a given J and Theta, conforming to the assumptions of neutrality, must be constrained in it's diversity. This simulation is repeated 1000 times as in Jabot et al. (2011), with the $H1$ estimated for each simmulated community. The code is as follows. 
+```{r}
+rep <- 1000
+Hlist <- as.numeric(0:rep)
+Theta<-9.43623 #test value for Theta
+J<-611 #test value for J (number of indiv)
+S <- 40 #test number of species present
+for(z in 1:rep) { #begins simulation loop. Says in this sample do this operation xx times. 
+ repeat{
+                    Nsim <- rand.neutral(J, Theta) #Neutral simulation of a community.
+                    s    <- length(Nsim) #number of species in the simulation
+                    if (s==S) break #repeats loop if number of species in simulation != number of species in a sample
+ } 
+ H <- (Nsim/sum(Nsim))*(-log(Nsim/sum(Nsim)))
+      H<- sum(H, na.rm=T)
+      H <- exp(H)#Shannon Wiener Diversity Index
+      Hlist[z] <- H
+ }
+mean(Hlist)
+```
+###4.
+The diversity of the observation is compared to the diversity distribution of the Neutral Simulations. In Jabot et al. (2011) this test was conducted with a t.test comparing the neutral diversity distribution to the empirical diversity, which was considered mu. In adition to repeating this test, we add a boostrap estimation of the observed diversity using random sampling with replacement at each station and recalculating the statistic at each iteration to form a boostraped diversity distribution. 
+```{r}
+#Creating the needed matricies and dataframe
+data2 <- data2[,-1] #Remove row names
+H.boot.listT <- matrix(0, rep, nrow(data2))
+H.boot = matrix(0, nrow(data2),6)
+colnames(H.boot) <- c("Mean_Hboot", "StandD_Ho","Norm_CI_lower", "Norm_CI_higher", "Quant_CI_lower", "Quant_CI_higher")
+H.sample = data.frame(matrix(0, rep, ncol(data2)))
+rep <- 100
+
+#Beggining the procedure
+    for(i in 1:nrow(data2)) {
+      #sampling
+  for(z in 1:rep) {
+    H.sample[z,] <- sample(data2[i,], size=ncol(data2), replace=TRUE)
+  #calculating statistics
+  }
+  H.boot.list <- Hill1stat(H.sample)
+ Hosd <- sd(H.boot.list)
+ HoMu <- mean(H.boot.list)
+ quant.int <- quantile(H.boot.list, probs=c(.025,.975))
+ norm.int <- HoMu + (1.96*c(-1,1)*Hosd)
+ H.boot[i,] <- c("Mean_Hboot"=HoMu, "StandD_Ho"=Hosd, "Norm_CI"= norm.int, "Quant_CI"=quant.int)
+ H.boot.listT[,i] <- H.boot.list #Extracts the list of calculated diversities too
+    }
+H.boot[1:2,]
+```
+
+We conducted our Neutral test on the same data used in Jabot et al. (2011), a model dataset utilized by ecologists worldwide. The data tested was 10 tropical forest plots maintained as a part of the Smithsonian Tropical Research Institute Center for Tropical Forest Science (CTFS; Losos
+and Leigh 2004; Condit et al. 2002, 2006). The sites range from 20-52 ha in size and are distributed across multiple continents. The CTFS sampling protocol provides for a standardized dataset, and empirical data that has been used for many different research topics.  At each site, all stems >10cm are measured, tagged, mapped, and identified down to species. This data allowed us to consider sample rich areas arround the world to consider the trends of Neutrality. Number of species and individuals we obtained from the tropical forest plots were compared to those reported by Jabot et al. (2011) for accuracy. Using the same data allowed us to compare our neutral test results to Jabot's, considering which plots are rejected from neutrality through both the bootstrap  to calculating diversity and the empirical aproach. We also measure the error and evaluate confidence intervals generated in terms of the ecological implications.  
+
+
+
+

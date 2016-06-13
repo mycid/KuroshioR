@@ -49,7 +49,8 @@ coolsp <- cbind(Factor, coolsp)
 par(mar=c(5,5,3,3))
 plot(coolsp$DfromFront, coolsp$species, pch=23, col="black",bg="green",cex.lab=1.5, cex=2, xlab="Distance (km) from the Front", ylab="Phytoplankton Species")
 
-PA <- ggplot(coolsp, aes(x =DfromFront, y =species, colour=factor(Factor)))+ geom_point(size=7, alpha=.9, label=clade, position=position_dodge(), stat="identity", )#+scale_color_gradientn(colours=jet.colors(7), limits=c(15,26), space="rgb", guide="colourbar")
+clade <- clades[2]
+PA <- ggplot(coolsp, aes(x =DfromFront, y =species, colour=factor(Factor)))+ geom_point(size=7, alpha=.9, position=position_dodge(), stat="identity", )#+scale_color_gradientn(colours=jet.colors(7), limits=c(15,26), space="rgb", guide="colourbar")
 PA <- PA+labs(x="Distance from the Front", y="Species Presence-Absence")
 #EU <- EU+theme(legend.title = "Shannon Wiener", element_text(colour="chocolate", size=21, face="bold"))
 PA <- PA+theme(axis.title.x = element_text(color="cadet blue", vjust=-0.35, size=20, face="bold"), axis.title.y = element_text(color="cadetblue" , vjust=0.35, size=20, face="bold"))

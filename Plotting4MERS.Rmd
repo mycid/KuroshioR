@@ -1,0 +1,192 @@
+---
+title: "Plotsfor MERS"
+author: "Trevor Eakes"
+date: "April 25, 2016"
+output: html_document
+---
+
+I need to create good, solid plots for the MERS journal so I am creating a nice code to do just that. This code will keep fonts the same, make sure the file is saved in the correct size, and ensure everything is well sized. 
+
+Let's do this
+
+```{r manipulatingdata}
+Adiv.abioticC <- Adiv.abiotic[-c(97:99),]
+Rich <- DiversityIndex[-c(186:200), "Richness"]
+Adiv.abioticC <- cbind(Adiv.abioticC, m=TetameResults$m)
+Adiv.abioticC <- Adiv.abioticC[which(Adiv.abioticC[,"depth..m."]==0),]
+```
+
+Color Plot function and parameters
+
+```{r plotfunctions}
+dev.off() #whipe the slate clean
+
+#x, y, col, and name variables must all be imputed to the function in ""
+S <- data[paste(S)]
+
+Water.Masses <- clades[,2]
+for(i in 1:length(Water.Masses)) {
+  
+  value <- Water.Masses[i]
+  if(value==1) {
+    value <- "Kuroshio"}
+  if(value==2){
+    value <-"Deep"
+  }
+  if(value==3) {
+    value <- "Oyashio"}
+  Water.Masses[i] <- value
+  }
+
+TScladeplot <- function(Adiv.abiotic, S, Theta, Gccom){
+EU <- ggplot(Fillament, aes(x=S, y=Theta, colour=Richness)) + geom_point(size=3, alpha=.9, position=position_dodge(), stat="identity")
+
++scale_color_gradientn(colours=jet.colors(7), space="rgb", guide="colourbar")   #can add this for continuous variables
+EU <- EU+labs(x=x, y=y)
+return(EU)}
+```
+
+```{r plotfunctions}
+#name must be in ""
+require(RColorBrewer)
+myColors <- c("#4DAF4A","#E41A1C","#377EB8" )
+names(myColors) <- levels(Water.Masses)
+colScale <- scale_colour_manual(name = "Water.Masses",values = myColors)
+
+Plotformat<- function(plot) {
+EU <- EU+ylab("Potential Temeprature")+xlab("Salinity")
+EU <- EU+
+
+EU <- EU +theme(axis.title.x = element_text(color="cadetblue", vjust=-0.35, size=12, hjust=-.005, face="bold"), axis.title.y = element_text(color="cadetblue" , vjust=0.35, size=12, face="bold"),
+axis.text.x=element_text(size=12, vjust=0.5, hjust=-.005), axis.text.y=element_text(size=12, vjust=.05),
+panel.background = element_rect(fill = "white"),
+plot.background = element_rect(fill = "white"),
+axis.title = element_text(face = "bold",size = rel(1)),
+axis.title.y = element_text(angle=90,vjust =2),
+axis.title.x = element_text(vjust = 2),
+axis.text = element_text(), 
+axis.line = element_line(colour="black"),
+axis.ticks = element_line(size=5),
+panel.grid.major = element_line(colour="#f0f0f0"),
+panel.grid.minor = element_blank(),
+legend.key = element_rect(colour = NA),
+legend.position = "bottom",
+legend.direction = "horizontal",
+legend.key.size= unit(5, "mm"),
+legend.margin = unit(1, "mm"),
+legend.title =element_blank(),
+legend.text=element_text(size=12),
+#guide_legend(title="Water Masses")),
+plot.margin=unit(c(10,10,10,10),"mm"),
+strip.background=element_rect(colour="#f0f0f0",fill="#f0f0f0"),
+strip.text = element_text(face="bold")
+)
+EU <- EU+colScale
+#saving the plot for the journal
+ggsave("TSplotdouble.pdf", plot= EU, device = pdf, path = NULL, scale = 2, width = 81 , height = 190, units = "mm", dpi = 800, limitsize = TRUE)
+
+#Journal page area is 169mm by 81mm
+return(Finalplot)
+}
+```
+geomtext default of 5 might be 5mm and the theme() size unit is point. 1 point is 1/72 inch=0.35mm, so 1 in geom_text() is 1mm, 1/0.35 =~ 14/5
+
+Other guidlines: Graphs should be submitted at about double the intended final size. Lettering should be neither excessively small nor too large: a guideline size is that upper-case letters should be about 4 mm high, i.e. about 2 mm high after reduction to final printed size. Avoid very thin or very thick lines.
+
+```{r plotfunctions}
+EU <- TScladeplot(Adiv.abiotic, S, Theta, Gccom)
+EU<- Plotformat(EU) 
+EU
+
+```
+
+```{r dend}
+require(graphics)
+ggplot() + 
+  geom_segment(data=segments(dendr), aes(x=x, y=y, xend=xend, yend=yend)) + 
+  geom_text(data=label(dendr), aes(x=x, y=y, label=label, hjust=0), size=3) +
+  coord_flip() + scale_y_reverse(expand=c(0.2, 0)) + 
+  theme(axis.line.y=element_blank(),
+        axis.ticks.y=element_blank(),
+        axis.text.y=element_blank(),
+        axis.title.y=element_blank(),
+        panel.background=element_rect(fill="white"),
+        panel.grid=element_blank())
+```
+
+```{r}
+clus1 <- as.numeric(apply(dfcluster1[,4:ncol(dfcluster1)], 2, function(x) sum(x>0)))
+clus2 <- as.numeric(apply(dfcluster2[,4:ncol(dfcluster2)], 2, function(x) sum(x>0)))
+clus3 <- as.numeric(apply(dfcluster3[,4:ncol(dfcluster3)], 2, function(x) sum(x>0)))
+
+clus1c <- round(clus1/104, 2)*100
+clus2c <- round(clus2/25, 2)*100
+clus3c <- round(clus3/56, 2)*100
+
+Incidence <- rbind(Kuroshio=clus1c, Oyashio=clus3c, Deep=clus2c)
+Kuroshio_Phytoplankton <- Kuroshio_Phytoplankton.csv[-c(186:190), -c(1,2)]
+coldendr(Incidence)<-colnames(Kuroshio_Phytoplankton)
+Incidence <- (as.matrix(Incidence))
+Incidence<-Incidence[order(Incidence[,1],decreasing=T),]
+#
+IncidenceMatrix <- heatmap(t(Incidence), Rowv=NA, Colv=NA, scale="row",margins=c(10,5))
+#
+#########################################################
+### C) Customizing and plotting the heat map
+#########################################################
+
+# creates a own color palette from red to green
+require(stats)
+my_palette <- colorRampPalette(c("white","blue", "yellow", "red", "purple"))(n = 599)
+
+# (optional) defines the color breaks manually for a "skewed" color transition
+col_breaks = c(seq(0, 1, length=100), 
+               seq(1, 2, length=100),
+               seq(2,6,length=100),              
+               seq(6,12,length=100),
+               seq(12, 18, length=100),
+               seq(18, 30, length=100))   
+dev.off()
+g <- heatmap.2(Incidence,
+               cellnote = Incidence, # same data set for cell labels
+               #offsetCol = 0.5,
+                main = "% of times present in observations",   # heat map title
+               notecol="black",      # change font color of cell labels to black
+               #density.info="none",  # turns off density plot inside color legend
+               trace="none",      # turns off trace lines inside the heat map
+               margins =c(8,12),     # widens margins around plot
+               col=my_palette,       # use on color palette defined earlier 
+               breaks=col_breaks,    # enable color transition at specified limits
+               dendrogram="none",   # only draw a row dendrogram
+               Colv=NA,              # turn off column clustering
+               key=T,
+               symkey=FALSE,
+               keysize=1.5,
+               #lmat=rbind(c(0, 3, 4), c(2,1,0 ) ), lwid=c(1.5, 4, 2 ),
+               Rowv=FALSE,
+)
+
+heatmap.2(Incidence,dendrogram="col", cellnote=Incidence,
+          notecol="black",col=redblue(256),scale="none",key=TRUE, keysize=1.5,
+          density.info="none", trace="none", cexRow=0.7,cexCol=1.2)
+
+
+```
+
+To change the plot font:
+
+#install.packages("extrafont");library(extrafont)
+#font_import("Trebuchet MS")
+#library(ggplot2)
+#qplot(1:10)+theme(text=element_text(family="Trebuchet MS"))
+
+other useful plotting modifications
+
+#EU <- EU+xlim(0, 2.5)+ylim(0, 2.5)
+#EU <- EU+geom_text(aes(label=station),hjust=.5, vjust=-1)
+#EU <- EU+stat_contour()
+
+putting plots together
+
+#library("gridExtra")
+#grid.arrange(xdensity, blankPlot, scatterPlot, ydensity, ncol=2, nrow=2, widths=c(4, 1.4), heights=c(1.4, 4))

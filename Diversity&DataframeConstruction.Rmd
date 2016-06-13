@@ -1,0 +1,163 @@
+---
+title: "Diversity and dataframe formating"
+author: "Trevor Eakes"
+date: "May 8, 2016"
+output: html_document
+---
+
+------------------------------------------------------------------------------------------
+
+Two dataframes will be crucial to all future analysis. 
+
+One contains phytoplankton abundances and presence in sample stations called Kuroshio_Phytoplankton. This will become 
+
+The other is of all physical concurrent measurements also at those stations called KuroAllData. This will become
+
+For Kuroshio_Phytoplankton we will need to convert the species counts from/L to per centiliter, which is the actual scale of measurements of abundance
+
+For Adiv.abiotic we start with the chemical and physical measuremnts at the station and will add new vectors such as diversity measurements, Chlorophyll, Catagorical groups, and total cell count. 
+
+It could be useful to do this for both the test dataset, which only includes diatom and dinoflagellates, and the all phytoplankton dataset called original. Original also has abundances of large phytoplankton taxa identified to the class level. 
+
+------------------------------------------------------------------------------------------
+
+I made some functions to make this whole process a little easier that are in the file NifftyTrevFunctions.R. We will run this script.
+
+Here are the functions from that file that we are using:
+
+1. Create.Diversity.I() will calculate Richness, Simpson diversity, Simpson evenness, Hill number 1 (Shannon-Wiener diversity) and Shannon evenness for every row of a data frame with species abundances/sample. It's great. 
+
+2. PotentialST calculates potential temperature and it follows the oceanographic standard formula for doing this which is long and complicated. 
+
+3. AbioticCluster is a convenient clustering protocol which will use Euclidean distance to cluster a given dataframe. Whatever is put into the formula will be clustered so pick wisely. It spits out three dendrograms with three seperate clustering methods, the complete method, the single method and the Aver method. THis helps the user pick which method to use when presenting their data. It will also cut the tree into the specified number of clades for each dendrogram and create a vector with the clade identity of each row input into the function. Pretty nifty. 
+
+*Note the distance calculation method is easily changed for those looking to use a Curtis-Bray, Jaccard or some other dissimilarity matrix. 
+
+4. SplitData is a convenience function for easily splitting a dataframe into new dataframes based upon a single factor vector within the dataframe.
+
+------------------------------------------------------------------------------------------
+```{r}
+source('~/GitHub/KuroshioR/NifftyTrevFunctions.R', encoding = 'UTF-8')
+
+```
+
+Adiv.abiotic: the phsical measurements for every sample with biological indices. You will need the file test.csv & origin.csv saved in the directory to run this script.
+
+```{r}
+require(utils)
+All <- read.csv('~/GitHub/KuroshioR/KuroAlldata.csv')
+bigtest <-  read.csv('~/GitHub/KuroshioR/Allbigstuff.csv')
+require(sparcl)
+
+All <-All[complete.cases(All$Diatoms..cells.l.),] #selected diatoms..cells.l. because any rows reading NA 
+All <- cbind("rows"=c(1:190), All)
+#would not match Kuroshio phytoplankton. Also changes the name to Al.
+
+  #Calculating Potential Density and Temperature
+  d <- All$depth..m. #depth from the data set
+  t <- All$T.C.        #Temperature from the data set
+  s <- All$S #Salinity from the data set
+  div.abiotic <- PotentialST(d,t,s ) #function for calculating the potential density and temperature 
+  
+  #Expanding the data set; more things to analyze
+  #|This data set has the generalized large classes of micro plankton found in the samples. It has a total cells per liter for all cells
+  bigtest<- bigtest[,4:ncol(bigtest)]
+  TotA <-apply(bigtest, 1, function(x) sum(x)) #This is all cells for all microplankton
+  Adiv.abiotic <- cbind(div.abiotic, TotA) #creates a new master dataset with additional information
+  Adiv.abiotic <- div.abiotic[-c(186:190),] #removes the last 5 rows because they have missing data
+
+  #Clustering data based on abiotic factors, automated
+Abiotic <- as.data.frame(cbind(Adiv.abiotic$S, Adiv.abiotic$Theta )) #Creates the desired dataframe with all the abiotic factors to be clustered
+  AbioticCluster(Abiotic, 3) #Creates three different method dendrograms and three seperate clade lists based on each of those methods. Clustering has been seperated in 3 clades in this formula too. Formula may be found in Nifty Functions. 
+  
+Adiv.abiotic <- Adiv.abiotic[-c(97:99),] #Taking out rows 97:99 because the centiliter cell count is not in whole numbers
+Adiv.abiotic<- cbind("cluster"=clades[-c(97:99),2], Adiv.abiotic)#Joining the complete clusteringfactor to the main dataframe. 
+
+#Preparing Chlorophyll data
+KuroChl <- na.omit(Kuro_chl_coords.csv) #omits unknown Chlorophyll samples
+calibrate <- lm(fluorescence~chlorophyll..ug.l., data=KuroChl) #Creates regression for calibration
+summary(calibrate) #summarizes that regression
+coeffs = coefficients(calibrate) #Retrieves coeffs
+KuroChlNA <- subset(Kuro_chl_coords.csv, is.na(Kuro_chl_coords.csv$chlorophyll..ug.l.)) #subsets dataframe for NA values
+Chlorophyll <- coeffs[1] + coeffs[2]*KuroChlNA$fluorescence #Creates estimated chlorophyll for the NA subset dataframe
+Kuro_chl_coords.csv$chlorophyll..ug.l.[is.na(Kuro_chl_coords.csv$chlorophyll..ug.l.)] <-Chlorophyll[1:sum(is.na(Kuro_chl_coords.csv$chlorophyll..ug.l.))] 
+#Above this takes the estimated Chlorophyll for all the NA's and writes them over the NA's in the original dataframe
+Chlorophyll <- Kuro_chl_coords.csv$chlorophyll..ug.l.[c(1:96, 100:185)] #shortens the Chlorophyll length to the main dataset, creates seperate vector
+Fluorescence <- Kuro_chl_coords.csv$fluorescence[c(1:96, 100:185)]
+Adiv.abiotic <- cbind(Chlorophyll, Fluorescence, Adiv.abiotic) #adds Chlorophyll to the dataset
+###
+A<- Adiv.abiotic[which(Adiv.abiotic[,"lon"]==143.5),]
+Adist<- cbind(A$lon, A$lat)
+dist1<- distm(Adist)
+distance <- dist1[1,]*-.001
+ADfromF<-distance+89.70125
+B <- Adiv.abiotic[which(Adiv.abiotic[, "lon"]==144.0),]
+Bdist<- cbind(B$lon, B$lat)
+bdist2<- distm(Bdist)
+distance1 <- bdist2[1,]*.001
+BDfromF <-distance1
+C<- Adiv.abiotic[which(Adiv.abiotic[, "lon"]==144.5),]
+Cdist<- cbind(C$lon, C$lat)
+dist3 <- distm(Cdist)
+distance2 <- dist3[1,]*-.001
+CDfromF <-distance2+79.3708
+D <-Adiv.abiotic[which(Adiv.abiotic[, "lon"]==145.0),]
+Ddist<- cbind(D$lon, D$lat)
+dist4 <- distm(Ddist)
+distance3 <- dist4[1,]*.001
+DDfromF <-distance3-23.065398
+E<- Adiv.abiotic[which(Adiv.abiotic[, "lon"]==145.5),]
+Edist<- cbind(E$lon, E$lat)
+dist5 <- distm(Edist)
+distance4 <- dist5[1,]*-.001
+EDfromF <-distance4
+DfromF <- c(ADfromF, BDfromF, CDfromF, DDfromF,EDfromF)
+Adiv.abiotic<-cbind(Adiv.abiotic, DfromF)
+``` 
+------------------------------------------------------------------------------------------
+
+##centitests
+
+Adding diversity from both diatom and dinoflagellates or from all phytoplankton.
+
+Also converting cell volumes to centi litters. A,B,C transects are .08, D and E are .1
+
+------------------------------------------------------------------------------------------
+```{r}
+cent <- read.csv('~/GitHub/KuroshioR/Kuroshio_Phytoplankton.csv') #diatom and dinoflagellates
+#centitest for just diatoms and dinoflagellates
+cent <- cent[-c(97:99, 186:190), c(3:length(cent))] #trim it as needed
+cent <- cbind(Adiv.abiotic$lon, cent) #add longitude to break it up by transect
+SplitData(cent, 1, "centi") #Using my function to split dataframes based off of catagorical variables. 
+
+centitest <- rbind(centi143.5[2:ncol(centi143.5)]/80, centi144[2:ncol(centi144)]/80, centi144.5[2:ncol(centi144.5)]/80, centi145[2:ncol(centi145)]/100, centi145.5[2:ncol(centi145.5)]/100)
+
+centitest <- cbind("rows"=c(1:nrow(centitest)), centitest) #adding row numbers to keep track of things
+centitestN <- centitest[which(rowSums(centitest[,2:ncol(centitest)])!=0),] #getting rid of samples with no species for purposes of Neutral Test
+
+write.csv(centitest[,2:ncol(centitest)], "centitest.csv") #saving the file
+centiDiverse <- Create.Diversity.I(centitest, 1, ncol(centitest)) #creates new dataframe of 
+centiDiverseN <- Create.Diversity.I(centitestN, 1, ncol(centitestN)) #creates new dataframe of diversity indices
+
+centiDiverseN <- cbind("rows"=centitestN$rows, centiDiverseN) #adding rows back into the picture
+Adiv.abioticN <- merge(centiDiverseN, Adiv.abiotic, by="rows")
+Adiv.abiotic <- cbind(centiDiverse, Adiv.abiotic)
+
+#Chosing to add centiDiverse to Adiv.abiotic instead of the diversity dataframe for all phytoplankton because it is my main interest.
+```
+
+##Origin
+
+Creating a dataframe with diversity of the original phytoplankton abundance including large taxa
+
+```{r}
+origin <- read.csv('~/GitHub/KuroshioR/origin.csv')# diatom and dinoflagellates plus flow cyctometer identified taxa
+#centitest for all organisms
+Cent <- origin[-c(97:99, 186:190), c(3:ncol(origin))]
+cent <- cbind(Adiv.abiotic$lon, Cent)
+SplitData(cent, 1, "centi")
+centiorigin <- rbind(centi143.5[2:ncol(centi143.5)]/80, centi144[2:ncol(centi144)]/80, centi144.5[2:ncol(centi144.5)]/80, centi145[2:ncol(centi145)]/100, centi145.5[2:ncol(centi145.5)]/100)
+write.csv(centiorigin, "centiorigin.csv")
+centiODiverse <- Create.Diversity.I(centiorigin, 1, ncol(centiorigin))
+```
+

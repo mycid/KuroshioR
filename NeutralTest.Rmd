@@ -1,0 +1,313 @@
+---
+title: "Neutral Theory"
+author: "Trevor Eakes"
+date: "May 9, 2016"
+output: html_document
+---
+--------------------------------------------------------------------------------------------
+Homemade Neutral Test for Building Upon
+
+I've included my Neutral test with as much information as I can explaining how this work.
+It requires a few extra steps outside of R to calculate the Neutral Parameters and it also needs the random neutral community generator function. I've built my own version of this function which seems to work pretty well. It will allow us to better aproximate the Neutral test in Jabot which also uses the Neutral Parameter m in adition to Theta. R doesn't have a great way to estimate those paremeters simultaneously which is why we need the software Tetame.
+
+What the Neutral Test function needs is the addition of boostrap techniques as laid out in the plan.
+
+Sample Data
+---------------------------------------------------------------------------------------------------------
+```{r}
+#Place sample files in the working directory
+wd <- getwd()
+centiorigin <- read.csv(paste(wd, "centiorigin.csv", sep="/"))
+CleanTetame  <- read.csv(paste(wd, "CleanTetame.csv", sep="/"))
+```
+-------------------------------------------------------------------------------------------
+Neutral Community Simulation
+
+```{r}
+#Function based off of Ettiene's sampling formula 
+#I believe this is correct and it seems to work well though I don't understand why acestrylabelind exists
+NeutralCommunityAbund <- function(J, theta, m, other.info=FALSE) {
+  specieslabelind  <- vector(mode="numeric", length=J)
+  ancestrylabelind <- vector(mode="numeric", length=J)
+  specieslabelanc  <- vector(mode="numeric", length=J)
+  abund <-numeric()
+  
+  if(m < 1){
+    I<- (m*(J−1))/(1-m)
+  }
+  a<-0
+  s<-0
+  for(i in 2:J) {
+    if(m < 1) {
+      R1 <- I/(I+i−1)
+    }
+    else{
+      R1<- 1
+    }
+    x<- runif(1)
+    if(x<=R1) {
+      a<-a+1
+      ancestrylabelind[i] <-a
+      R2<- theta/(theta+a-1)
+      y <- runif(1)
+      if(y<=R2){
+        s<-s+1
+        specieslabelind[i] <-s
+        specieslabelanc[a] <-s
+      }
+      if(y>R2){
+        randA <- sample(1:(a-1),1)
+        specieslabelind[i] <- specieslabelanc[randA]
+        specieslabelanc[a] <- specieslabelanc[randA] 
+      } else{ 
+        randj <- sample(1:(i-1),1)
+        ancestrylabelind[i] <- ancestrylabelind[randj]
+        specieslabelind[i] <- specieslabelind[randj] 
+      }
+    }}
+  if(other.info==TRUE){
+    assign("specieslabelanc", specieslabelanc, envir = globalenv())
+    assign("ancestrylabelind", ancestrylabelind, envir = globalenv())
+    ancS<- c(a,s)
+    assign("AncS", ancS, envir=globalenv())
+  }
+  return(specieslabelind)
+}
+```
+=======================================================================================================
+
+Function for organizing tetame data into more clean format. This function grabs the Ewens Theta, then choses the lowest Theta estimate from Tetame 2.1, either Theta1 or Theta2. If both are low it will take both. It also grabs the standard deviation and converts it into a normally distributed confidence interval. Into the function place the tatame data frame and the arbitrary cutoff value. The cutoff value tells the function the maximum size that you would expect Theta to be for your data. Avoids giant Theta values. Station tells the row name, must be added to the Tetame dataframe, must be in ''.
+
+```{r}
+CleanupTetame <- function(tetame, station, cutoff){ 
+  J <- tetame[,"J"]
+  S <- tetame[,"S"]
+  Theta <- as.numeric(rep(0, nrow(tetame)))
+  m     <- as.numeric(rep(0, nrow(tetame)))
+  Theta2<- as.numeric(rep(0, nrow(tetame)))
+  m2     <- c( as.numeric(rep(0, nrow(tetame))))
+  Station <- tetame[,station]
+  Theta_Ewens <- tetame[, "Theta_Ewens"]
+  ThetaciL <- as.numeric(rep(0, nrow(tetame)))
+  ThetaciU <- as.numeric(rep(0, nrow(tetame)))
+  ThetaSD <- as.numeric(rep(0, nrow(tetame)))
+  
+  
+  for (i in 1:nrow(tetame)) {
+    theta1 <- tetame[i, "Theta"]
+    theta2 <- tetame[i, "Theta2"]
+    thetaSD1<- tetame[i, "Std_Theta"]
+    thetaSD2 <- tetame[i, "Std_Theta2"]
+    if (theta1 < theta2 && theta1<cutoff) {
+      Theta[i] <- theta1
+      ThetaSD[i] <- thetaSD1
+      m[i] <- tetame[i, "m"]
+    } else
+      if(theta2< theta1 & theta2<cutoff){
+        Theta[i] <- theta2
+        ThetaSD[i] <- ThetaSD2
+        m[i] <- tetame[i, "m2"]
+      } else
+        if(theta1==theta2 & theta1<cutoff) {
+          Theta[i] <- theta1
+          ThetaSD[i] <- thetaSD1
+          m[i] <- tetame[i, "m"]
+        } else
+          if (theta1 & theta2 >cutoff){
+            {Theta[i] <- theta1
+            m[i] <- tetame[i, "m"]
+            Theta2[i] <- theta2
+            m2[i] <- tetame[i, "m2"]}
+          }
+    ThetaCI <- cbind(ThetaciL, ThetaciU)
+    ThetaCI<- Theta+1.96*c(-1,1)*ThetaSD
+    }
+  cbind(Station, depth, S, J, Theta, ThetaSD, ThetaCI,  m, Theta2, m2, Theta_Ewens)
+}
+
+```
+------------------------------------------------------------------------------------------
+The Neutral Test
+
+To the function plug in:
+
+data: Tetamefile with Neutral Parameters, confidence intervals, etc for each sample
+data2: species abundances for each sample
+station: categorical variable identifying some atribute like location of a sample. This categorical variable must be located in data2. Must be in ""
+depth: Additional factorial variable identifying some atribute like depth for a sample. This variable must be located in data2. Must be in ""
+rep: number of simulations to run (typically 1000 is pretty good) per sample
+
+t.lim: if a given sample calculation is taking a long time this t.lim is the cutoff point in seconds. typically 30min-hour is ideal. When the simulation reaches the cut.off point it will stop requiring that simulated neautral comunities have the exact same number of species as the observed community. It will accept simulated communities with +/- 1 species from the observed number of species in the real community. This speads things up greatly and prevents the test from running forever. 
+
+Theta_Ewens: If true this version of the test will ignore m, using only Theta as calculated from the Ewen's sampling formula. Normally the test runs on the Ettiene sampling formula. The difference is that Ettiene does not assume m=1, allowing for the presence of local communities. 
+
+```{r}
+NeutralTest <- function(data, data2, station, rep, t.lim, Theta_Ewens=FALSE) #data & data2 must have the same number of rows for this to work.
+
+{
+  require(untb)
+  require(iNEXT)
+  startt= Sys.time() #begins recording time the whole function began
+  P <- as.numeric(rep(0, nrow(data))) #Creates empty vector which will record p-values of the test
+  ci <- as.numeric(rep(0, nrow(data))) #Creates empty vector which will become the confidence intervals of the t-test
+  Hlist <- as.numeric(rep(0, nrow(data)))
+  Station <- data[, station] #Station
+  #depths <- data[, "depth"] #depth
+  Neutral_MeanH <- as.numeric(rep(0, nrow(data)))
+  Precise <- as.vector(rep("NA", nrow(data)))
+  NeutralCI <- matrix(nrow=nrow(data), ncol=2)
+  #Empty vector to be filled with charecter string describing if the test went past the time limit or not
+ 
+#Calculate observed Shannon Wiener diversity values for the true communities using bootstrap methods
+
+  # Hill number 1 function
+Hill1stat <- function(dat) {
+  Ho <- apply(dat, 1, function(x) (x/sum(x))*(-log(x/sum(x)))) #Shannon Wiener Diversity precursor
+  Ho <- colSums(Ho, na.rm=T)
+  H1<- exp(Ho)
+  return(H1)
+}
+H1 <- Hill1stat(data2) #Empirical Hill number 1
+
+#
+H.boot.listT <- matrix(0, rep, nrow(data2))
+H.boot = matrix(0, nrow(data2),6)
+colnames(H.boot) <- c("Mean_Hboot", "StandD_Ho","N_CI_lower", "N_CI_higher", "Q_CI_lower", "Q_CI_higher")
+    H.sample = data.frame(matrix(0, rep, ncol(data2)))
+    for(i in 1:nrow(data2)){
+  for(z in 1:rep) {
+    H.sample[z,] <- sample(data2[i,], size=ncol(data2), replace=TRUE)
+  }
+ H.boot.list <- Hill1stat(H.sample)
+ Hosd <- sd(H.boot.list)
+ HoMu <- mean(H.boot.list)
+ quant.int <- quantile(H.boot.list, probs=c(.025,.975))
+ norm.int <- HoMu + (1.96*c(-1,1)*Hosd)
+ H.boot[i,] <- c("Mean_Hboot"=HoMu, "StandD_Ho"=Hosd, "N_CI"= norm.int, "Q_CI"=quant.int)
+ H.boot.listT[,i] <- H.boot.list
+    }
+
+#rownames(H.boot) <- c(data[, station])
+#We need to change this to a bootstrap estimation of ShannonWiener diversity!!
+
+   
+  for (i in 1:nrow(data)) {#The first loop begins. This loop says: "Do this operation for every row in the dataframe"
+    if (Theta_Ewens==TRUE) { #Need to move this code into the beggining second z loop and modify it. We need it to randomly select a Theta value from within the 95% confidence interval of Theta for each simulation of the 1000 simulations we do per sample. 
+      Theta <- data[i, "Theta_Ewens"]
+      #ThetaCI[i,] <- c("NA", "NA")
+    } else{
+      Theta <- data[i, "Theta"]
+      m <- data[i,"m"]
+      #ThetaCI[i,] <- data[i, c('ThetaciL', 'ThetaciU' )]
+    }
+    S <- data[i, "S"] #Number of species in the sample
+    J <- data[i, "J"] #Number of individuals in the sample
+    Hlist <- as.numeric(rep(0, rep))#empty vector for ShannonWiener values for each simulation of a sample 
+   
+    ptm <- proc.time() #starts the timer
+    ptm <- ptm[3] 
+    
+    for(z in 1:rep) { #begins simulation loop. Says in this sample do this operation xx times.
+      print(z) #Lets you know how far along the simulation is with a station
+      ct <- proc.time()
+      elapsed = as.numeric(ptm-ct[3]) #records how much time has elapsed since the above for loop began
+        if(Theta_Ewens==TRUE){ #community simulation without using m and using the Ewens formula
+            if (elapsed< -t.lim) { #says if the elapsed time is more than the time cutoff than allow the simulated community richness to be plus or minus one of the observed community
+            exact=1
+                repeat{
+                Nsim <- rand.neutral(J,Theta) #Ewens formula for random commmunity generation
+                s    <- length(Nsim) #counts number of species
+                    if (s>S-1 || s<S+1) break #This says redo the simulation of the number of species is not the same as the observed community
+                    }}
+          if(elapsed>=-t.lim) { #Normal procedure for when simulation has not ran over time limmit
+                    exact=0
+                   repeat{
+                    Nsim <- rand.neutral(J, Theta)
+                    s    <- length(Nsim) 
+                    if (s==S) break
+               }}       
+        }
+      if(Theta_Ewens==FALSE){
+      #this using the Ettiene sampling formula which I have coded
+        
+          if (elapsed< -t.lim) { #says if the elapsed time is more than the time cutoff than allow the simulated community richness to be plus or minus one of the observed community
+            exact=1
+            repeat{
+            Nsim <- NeutralCommunityAbund(J, Theta, m)
+             s    <- length(Nsim) 
+            if (s>S-1 || s<S+1) break
+        }
+          } else {
+               exact=0
+               repeat{
+                         Nsim <- NeutralCommunityAbund(J, Theta, m)
+                          s    <- length(Nsim) 
+                          if (s==S) break
+               }}}
+      
+      H <- (Nsim/sum(Nsim))*(-log(Nsim/sum(Nsim)))
+      H<- sum(H, na.rm=T)
+      H <- exp(H)#Shannon Wiener Diversity Index
+      Hlist[z] <- H
+      print(Hlist[z])
+      }
+#This will say if the calculation was  or not and add that information into a dataframe
+  if(exact==1) {
+    Precise[i] <- "FALSE"
+  } else {
+    Precise[i] <- "TRUE"
+  }
+    Neutral_MeanH[i] <- mean(Hlist) #Mean of the simulations
+    NeutralCI[i,] <- Neutral_MeanH[i]+(1.96*c(-1,1)*(sd(Hlist)/sqrt(1000)))
+    colnames(NeutralCI) <- c("NeutralciL", "NeutralciU")
+    #if(unique(Hlist)==1) {
+     # break
+    #}
+    p<- t.test( Hlist, mu=H1[i]) #t.test to see if the simulated distribution is significantly different from the observed ShannonWiener diversity
+    
+    #Can we add a boostrap eliment to the t.test too?
+    
+    ci[i]<- list(p[4]) #confidence interval
+    P[i] <- as.numeric(p[3]) # Ho: mu=3
+    time= ptm-proc.time() #Tells how long the calculation took
+     print(paste( "p-value:", P[i], "CI:", ci[i], "H observed:", H1[i], "mean H:", Neutral_MeanH[i], "calc.time:", time, "?:", "Station:", Station[i])) #prints all relavent information from the test
+
+  #Plotting the distribution
+# Histogram Colored (blue and red)
+par(mar=c(5.1,6,4.1,2.1))
+hist(H.boot.listT[,i], col=rgb(1,0,0,0.5), breaks=30, xlim=c(min(c(H.boot.listT[,i], Hlist )), max(c(H.boot.listT[,i], Hlist ))), ylim=c(0,(275)), freq=T, main=data[i,"Station"], xlab= "Diversity (H)", ylab="Frequency", cex.lab=2, cex.axis=2, cex.main=2, cex.sub=2)
+abline(v=H1[i], lwd=3,col="purple")
+hist(Hlist, freq=T, col=rgb(0,0,1,0.5), breaks=25, add=TRUE, main=data[i,"Station"], xlab= "Diversity (H)", ylab="Frequency", cex.lab=2, cex.axis=2, cex.main=1.5, cex.sub=2)
+abline(v=Neutral_MeanH[i], lwd=3,col="green")
+
+    } #Ends the process for a given sample
+
+ NTest <-  data.frame(Station, P, NeutralCI, H1, Neutral_MeanH, H.boot, Precise) #Dataframe to be returned
+ return(NTest) #returning the dataframe
+}
+
+ctfsTetameResults <- read.csv("ctfsTetameResults.csv")
+ctfsAbund <- read.csv("CTFSabund.csv")
+ctfsTetameResults <- cbind("Station"=ctfsAbund[,"Station"], ctfsTetameResults)
+NTctfsNoboot <- NeutralTest(ctfsTetameResults, ctfsAbund[, 2:ncol(ctfsAbund)], "Station", rep=1000, 10, Theta_Ewens = TRUE)
+NTResults <- NTResults <- cbind(NTResults, Pfromboot)
+write.csv(NTResults, "NTResults.csv")
+```
+
+Time to actually run the test and see how well it works. I've turned this section off for now so that the html file will build.
+
+Below is for running test with Kuroshio data
+
+KuroSums <- data.frame(rbind("Kuroshio"=KuroSum,"Oyashio"=OyaSum,  "Deep"=DeepSum)) 
+NTResults <- NeutralTest(TetameCluster, KuroSums , "Station", rep=1000, 900, Theta_Ewens = TRUE)
+
+#centiStation test (test by station)
+centiStation<- centiStation[-c(4),]
+CleanTetame<- CleanTetame[-c(4),]
+NTResults <- NeutralTest(CleanTetameS, data.frame(centiStation) , "Station", "depth", 100, 60, Theta_Ewens=TRUE)
+
+require(untb)
+centitest2<- centitest[-c(97:99), ]
+CleanTetame <- cbind(CleanTetame, "Theta_Ewens"=TetameResults$Theta_Ewens)
+NTResults <- NeutralTest(CleanTetame, centiorigin, "Station", "depth", rep=100, 300, Theta_Ewens=TRUE)
+

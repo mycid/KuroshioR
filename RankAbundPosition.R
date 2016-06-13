@@ -23,7 +23,7 @@ S.E <- Surface[33:40,]
 
 
 #A
-Adist<- cbind(S.A$longitude, S.A$latitude)
+Adist<- cbind(S.A$lon, S.A$lat)
 dist1 <- distm(Adist)
 distance <- dist1[1,]*.001
 SalGradientA <- with(S.A, (S[-1] - S[-length(S)])/(distance[-1]-distance[-length(distance)]))
@@ -44,7 +44,7 @@ DfromF <- (c(dist1[1,])*-.001)+89.70125
 S.A <- S.A[-1]
 S.A <- cbind(DfromF, S.A)
 #B
-Bdist<- cbind(S.B$longitude, S.B$latitude)
+Bdist<- cbind(S.B$lon, S.B$lat)
 dist2 <- distm(Bdist)
 distance1 <- dist2[1,]*.001
 SalGradientB <- with(S.B, (S[-1] - S[-length(S)])/(distance1[-1]-distance1[-length(distance1)]))
@@ -66,7 +66,7 @@ S.B <- S.B[-1]
 S.B <- cbind(DfromF, S.B)
 
 #C
-Cdist<- cbind(S.C$longitude, S.C$latitude)
+Cdist<- cbind(S.C$lon, S.C$lat)
 dist3 <- distm(Cdist)
 distance3 <- dist3[1,]*.001
 SalGradientC <- with(S.C, (S[-1] - S[-length(S)])/(distance3[-1]-distance3[-length(distance3)]))
@@ -88,7 +88,7 @@ S.C <- S.C[-1]
 S.C <- cbind(DfromF, S.C)
 #
 #D
-Ddist<- cbind(S.D$longitude, S.D$latitude)
+Ddist<- cbind(S.D$lon, S.D$lat)
 dist4 <- distm(Ddist)
 distance4 <- dist4[1,]*.001
 SalGradientD <- with(S.D, (S[-1] - S[-length(S)])/(distance4[-1]-distance4[-length(distance4)]))
@@ -111,7 +111,7 @@ S.D <- cbind(DfromF, S.D)
 #
 
 #E
-Edist<- cbind(S.E$longitude, S.E$latitude)
+Edist<- cbind(S.E$lon, S.E$lat)
 dist5 <- distm(Edist)
 distance5 <- dist5[1,]*.001
 SalGradientE <- with(S.E, (S[-1] - S[-length(S)])/(distance5[-1]-distance5[-length(distance5)]))
